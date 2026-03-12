@@ -159,6 +159,35 @@ type CompraInsumo {
   detalles: [DetCompraInsumo!]
 }
 
+type DetOrdenProduccion {
+  id_det_orden: Int!
+  orden_produccion_id: Int!
+  orden_produccion: OrdenProduccion
+  insumo_id: Int!
+  insumo: Insumo
+  cantidad_consumida: Float!
+}
+
+type OrdenProduccion {
+  id_orden_produccion: Int!
+  producto_id: Int!
+  producto: Producto
+  empleado_id: Int!
+  empleado: Empleado
+  cantidad_a_producir: Int!
+  fecha_orden: DateTime!
+  estado: String!
+  detalles: [DetOrdenProduccion!]
+}
+
+type InventarioProducto {
+  id_inventario: Int!
+  producto_id: Int!
+  producto: Producto
+  stock_actual: Int!
+  stock_minimo_alerta: Int!
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -188,6 +217,10 @@ type Query {
   insumo(id_insumo: Int!): Insumo!
   comprasInsumos: [CompraInsumo!]!
   compraInsumo(id_compra_insumo: Int!): CompraInsumo!
+  ordenesProduccion: [OrdenProduccion!]!
+  ordenProduccion(id_orden_produccion: Int!): OrdenProduccion!
+  inventariosProductos: [InventarioProducto!]!
+  inventarioProducto(id_inventario: Int!): InventarioProducto!
 }
 
 type Mutation {
@@ -234,6 +267,12 @@ type Mutation {
   createCompraInsumo(createCompraInsumoInput: CreateCompraInsumoInput!): CompraInsumo!
   updateCompraInsumo(updateCompraInsumoInput: UpdateCompraInsumoInput!): CompraInsumo!
   removeCompraInsumo(id_compra_insumo: Int!): Boolean!
+  createOrdenProduccion(createOrdenProduccionInput: CreateOrdenProduccionInput!): OrdenProduccion!
+  updateOrdenProduccion(updateOrdenProduccionInput: UpdateOrdenProduccionInput!): OrdenProduccion!
+  removeOrdenProduccion(id_orden_produccion: Int!): Boolean!
+  createInventarioProducto(createInventarioProductoInput: CreateInventarioProductoInput!): InventarioProducto!
+  updateInventarioProducto(updateInventarioProductoInput: UpdateInventarioProductoInput!): InventarioProducto!
+  removeInventarioProducto(id_inventario: Int!): Boolean!
 }
 
 input CreateUsuarioInput {
@@ -468,4 +507,38 @@ input UpdateCompraInsumoInput {
   comprobante_url: String
   detalles: [CreateDetCompraInput!]
   id_compra_insumo: Int!
+}
+
+input CreateOrdenProduccionInput {
+  producto_id: Int!
+  empleado_id: Int!
+  cantidad_a_producir: Int!
+  estado: String
+  detalles: [CreateDetOrdenInput!]!
+}
+
+input CreateDetOrdenInput {
+  insumo_id: Int!
+  cantidad_consumida: Float!
+}
+
+input UpdateOrdenProduccionInput {
+  producto_id: Int
+  empleado_id: Int
+  cantidad_a_producir: Int
+  estado: String
+  detalles: [CreateDetOrdenInput!]
+  id_orden_produccion: Int!
+}
+
+input CreateInventarioProductoInput {
+  producto_id: Int!
+  stock_minimo_alerta: Int
+}
+
+input UpdateInventarioProductoInput {
+  producto_id: Int
+  stock_minimo_alerta: Int
+  id_inventario: Int!
+  stock_actual: Int
 }
