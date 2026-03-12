@@ -1,0 +1,46 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Cliente } from './cliente.entity';
+import { CreateClienteInput } from './dto/create-cliente.input';
+import { UpdateClienteInput } from './dto/update-cliente.input';
+
+@Injectable()
+export class ClientesService {
+  constructor(
+    @InjectRepository(Cliente)
+    private readonly clienteRepository: Repository<Cliente>,
+  ) {}
+
+  async create(createClienteInput: CreateClienteInput): Promise<Cliente> {
+    const nuevoCliente = this.clienteRepository.create(createClienteInput);
+    const guardado = await this.clienteRepository.save(nuevoCliente);
+    // Aplicamos la magia de retornar con relaciones
+    return this.findOne(guardado.id_cliente);
+  }
+
+  async findAll(): Promise<Cliente[]> {
+    return this.clienteRepository.find({ relations: ['usuario'] });
+  }
+
+  async findOne(id_cliente: number): Promise<Cliente> {
+    const cliente = await this.clienteRepository.findOne({
+      where: { id_cliente },
+      relations: ['usuario'],
+    });
+    if (!cliente) throw new NotFoundException(`Cliente #${id_cliente} no encontrado`);
+    return cliente;
+  }
+
+  async update(id_cliente: number, updateClienteInput: UpdateClienteInput): Promise<Cliente> {
+    const cliente = await this.findOne(id_cliente);
+    Object.assign(cliente, updateClienteInput);
+    await this.clienteRepository.save(cliente);
+    return this.findOne(id_cliente);
+  }
+
+  async remove(id_cliente: number): Promise<boolean> {
+    const resultado = await this.clienteRepository.delete(id_cliente);
+    return (resultado.affected ?? 0) > 0;
+  }
+}

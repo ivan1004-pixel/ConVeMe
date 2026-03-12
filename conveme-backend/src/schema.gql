@@ -1,0 +1,471 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Rol {
+  id_rol: Int!
+  nombre: String!
+  descripcion: String
+}
+
+type Usuario {
+  id_usuario: Int!
+  username: String!
+  rol_id: Int
+  rol: Rol
+  activo: Boolean!
+  ultimo_acceso: DateTime
+  created_at: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type AuthResponse {
+  token: String!
+  usuario: Usuario!
+}
+
+type Pais {
+  id_pais: Int!
+  nombre: String!
+}
+
+type Estado {
+  id_estado: Int!
+  pais_id: Int!
+  nombre: String!
+  pais: Pais
+}
+
+type Municipio {
+  id_municipio: Int!
+  estado_id: Int!
+  nombre: String!
+  estado: Estado
+}
+
+type Escuela {
+  id_escuela: Int!
+  nombre: String!
+  siglas: String
+  municipio_id: Int!
+  municipio: Municipio
+  activa: Boolean!
+}
+
+type Empleado {
+  id_empleado: Int!
+  usuario_id: Int!
+  usuario: Usuario
+  nombre_completo: String!
+  email: String!
+  telefono: String
+  puesto: String
+  calle_y_numero: String
+  colonia: String
+  codigo_postal: String
+  municipio_id: Int
+  municipio: Municipio
+}
+
+type Vendedor {
+  id_vendedor: Int!
+  usuario_id: Int!
+  usuario: Usuario
+  escuela_id: Int
+  escuela: Escuela
+  nombre_completo: String!
+  email: String!
+  telefono: String
+  instagram_handle: String
+  calle_y_numero: String
+  colonia: String
+  codigo_postal: String
+  municipio_id: Int
+  municipio: Municipio
+  facultad_o_campus: String
+  punto_entrega_habitual: String
+  estado_laboral: String
+  comision_fija_menudeo: Float!
+  comision_fija_mayoreo: Float!
+  meta_ventas_mensual: Float!
+}
+
+type Cliente {
+  id_cliente: Int!
+  usuario_id: Int
+  usuario: Usuario
+  nombre_completo: String!
+  email: String
+  telefono: String
+  direccion_envio: String
+  fecha_registro: DateTime!
+}
+
+type Categoria {
+  id_categoria: Int!
+  nombre: String!
+}
+
+type Tamano {
+  id_tamano: Int!
+  descripcion: String!
+}
+
+type Producto {
+  id_producto: Int!
+  sku: String!
+  nombre: String!
+  categoria_id: Int!
+  categoria: Categoria
+  tamano_id: Int!
+  tamano: Tamano
+  precio_unitario: Float!
+  precio_mayoreo: Float
+  cantidad_minima_mayoreo: Int!
+  costo_produccion: Float
+  activo: Boolean!
+}
+
+type Insumo {
+  id_insumo: Int!
+  nombre: String!
+  unidad_medida: String
+  stock_actual: Float!
+  stock_minimo_alerta: Float!
+}
+
+type DetCompraInsumo {
+  id_det_compra: Int!
+  compra_insumo_id: Int!
+  compra: CompraInsumo
+  insumo_id: Int!
+  insumo: Insumo
+  cantidad_comprada: Float!
+  costo_unitario: Float
+}
+
+type CompraInsumo {
+  id_compra_insumo: Int!
+  fecha_compra: DateTime!
+  proveedor: String
+  monto_total: Float
+  empleado_id: Int
+  empleado: Empleado
+  comprobante_url: String
+  detalles: [DetCompraInsumo!]
+}
+
+type Query {
+  usuarios: [Usuario!]!
+  usuario(id_usuario: Int!): Usuario!
+  paises: [Pais!]!
+  pais(id_pais: Int!): Pais!
+  estados: [Estado!]!
+  estado(id_estado: Int!): Estado!
+  municipios: [Municipio!]!
+  municipio(id_municipio: Int!): Municipio!
+  roles: [Rol!]!
+  rol(id_rol: Int!): Rol!
+  escuelas: [Escuela!]!
+  escuela(id_escuela: Int!): Escuela!
+  empleados: [Empleado!]!
+  empleado(id_empleado: Int!): Empleado!
+  vendedores: [Vendedor!]!
+  vendedor(id_vendedor: Int!): Vendedor!
+  clientes: [Cliente!]!
+  cliente(id_cliente: Int!): Cliente!
+  categorias: [Categoria!]!
+  categoria(id_categoria: Int!): Categoria!
+  tamanos: [Tamano!]!
+  tamano(id_tamano: Int!): Tamano!
+  productos: [Producto!]!
+  producto(id_producto: Int!): Producto!
+  insumos: [Insumo!]!
+  insumo(id_insumo: Int!): Insumo!
+  comprasInsumos: [CompraInsumo!]!
+  compraInsumo(id_compra_insumo: Int!): CompraInsumo!
+}
+
+type Mutation {
+  createUsuario(createUsuarioInput: CreateUsuarioInput!): Usuario!
+  updateUsuario(updateUsuarioInput: UpdateUsuarioInput!): Usuario!
+  removeUsuario(id_usuario: Int!): Boolean!
+  login(loginInput: LoginInput!): AuthResponse!
+  createPais(createPaisInput: CreatePaisInput!): Pais!
+  updatePais(updatePaisInput: UpdatePaisInput!): Pais!
+  removePais(id_pais: Int!): Boolean!
+  createEstado(createEstadoInput: CreateEstadoInput!): Estado!
+  updateEstado(updateEstadoInput: UpdateEstadoInput!): Estado!
+  removeEstado(id_estado: Int!): Boolean!
+  createMunicipio(createMunicipioInput: CreateMunicipioInput!): Municipio!
+  updateMunicipio(updateMunicipioInput: UpdateMunicipioInput!): Municipio!
+  removeMunicipio(id_municipio: Int!): Boolean!
+  createRol(createRolInput: CreateRolInput!): Rol!
+  updateRol(updateRolInput: UpdateRolInput!): Rol!
+  removeRol(id_rol: Int!): Boolean!
+  createEscuela(createEscuelaInput: CreateEscuelaInput!): Escuela!
+  updateEscuela(updateEscuelaInput: UpdateEscuelaInput!): Escuela!
+  removeEscuela(id_escuela: Int!): Boolean!
+  createEmpleado(createEmpleadoInput: CreateEmpleadoInput!): Empleado!
+  updateEmpleado(updateEmpleadoInput: UpdateEmpleadoInput!): Empleado!
+  removeEmpleado(id_empleado: Int!): Boolean!
+  createVendedor(createVendedorInput: CreateVendedorInput!): Vendedor!
+  updateVendedor(updateVendedorInput: UpdateVendedorInput!): Vendedor!
+  removeVendedor(id_vendedor: Int!): Boolean!
+  createCliente(createClienteInput: CreateClienteInput!): Cliente!
+  updateCliente(updateClienteInput: UpdateClienteInput!): Cliente!
+  removeCliente(id_cliente: Int!): Boolean!
+  createCategoria(createCategoriaInput: CreateCategoriaInput!): Categoria!
+  updateCategoria(updateCategoriaInput: UpdateCategoriaInput!): Categoria!
+  removeCategoria(id_categoria: Int!): Boolean!
+  createTamano(createTamanoInput: CreateTamanoInput!): Tamano!
+  updateTamano(updateTamanoInput: UpdateTamanoInput!): Tamano!
+  removeTamano(id_tamano: Int!): Boolean!
+  createProducto(createProductoInput: CreateProductoInput!): Producto!
+  updateProducto(updateProductoInput: UpdateProductoInput!): Producto!
+  removeProducto(id_producto: Int!): Boolean!
+  createInsumo(createInsumoInput: CreateInsumoInput!): Insumo!
+  updateInsumo(updateInsumoInput: UpdateInsumoInput!): Insumo!
+  removeInsumo(id_insumo: Int!): Boolean!
+  createCompraInsumo(createCompraInsumoInput: CreateCompraInsumoInput!): CompraInsumo!
+  updateCompraInsumo(updateCompraInsumoInput: UpdateCompraInsumoInput!): CompraInsumo!
+  removeCompraInsumo(id_compra_insumo: Int!): Boolean!
+}
+
+input CreateUsuarioInput {
+  username: String!
+  password_raw: String!
+  rol_id: Int
+}
+
+input UpdateUsuarioInput {
+  username: String
+  password_raw: String
+  rol_id: Int
+  id_usuario: Int!
+  activo: Boolean
+}
+
+input LoginInput {
+  username: String!
+  password_raw: String!
+}
+
+input CreatePaisInput {
+  nombre: String!
+}
+
+input UpdatePaisInput {
+  nombre: String
+  id_pais: Int!
+}
+
+input CreateEstadoInput {
+  pais_id: Int!
+  nombre: String!
+}
+
+input UpdateEstadoInput {
+  pais_id: Int
+  nombre: String
+  id_estado: Int!
+}
+
+input CreateMunicipioInput {
+  estado_id: Int!
+  nombre: String!
+}
+
+input UpdateMunicipioInput {
+  estado_id: Int
+  nombre: String
+  id_municipio: Int!
+}
+
+input CreateRolInput {
+  nombre: String!
+  descripcion: String
+}
+
+input UpdateRolInput {
+  nombre: String
+  descripcion: String
+  id_rol: Int!
+}
+
+input CreateEscuelaInput {
+  nombre: String!
+  siglas: String
+  municipio_id: Int!
+}
+
+input UpdateEscuelaInput {
+  nombre: String
+  siglas: String
+  municipio_id: Int
+  id_escuela: Int!
+  activa: Boolean
+}
+
+input CreateEmpleadoInput {
+  usuario_id: Int!
+  nombre_completo: String!
+  email: String!
+  telefono: String
+  puesto: String
+  calle_y_numero: String
+  colonia: String
+  codigo_postal: String
+  municipio_id: Int
+}
+
+input UpdateEmpleadoInput {
+  usuario_id: Int
+  nombre_completo: String
+  email: String
+  telefono: String
+  puesto: String
+  calle_y_numero: String
+  colonia: String
+  codigo_postal: String
+  municipio_id: Int
+  id_empleado: Int!
+}
+
+input CreateVendedorInput {
+  usuario_id: Int!
+  escuela_id: Int
+  nombre_completo: String!
+  email: String!
+  telefono: String
+  instagram_handle: String
+  calle_y_numero: String
+  colonia: String
+  codigo_postal: String
+  municipio_id: Int
+  facultad_o_campus: String
+  punto_entrega_habitual: String
+  estado_laboral: String
+}
+
+input UpdateVendedorInput {
+  usuario_id: Int
+  escuela_id: Int
+  nombre_completo: String
+  email: String
+  telefono: String
+  instagram_handle: String
+  calle_y_numero: String
+  colonia: String
+  codigo_postal: String
+  municipio_id: Int
+  facultad_o_campus: String
+  punto_entrega_habitual: String
+  estado_laboral: String
+  id_vendedor: Int!
+  comision_fija_menudeo: Float
+  comision_fija_mayoreo: Float
+  meta_ventas_mensual: Float
+}
+
+input CreateClienteInput {
+  usuario_id: Int
+  nombre_completo: String!
+  email: String
+  telefono: String
+  direccion_envio: String
+}
+
+input UpdateClienteInput {
+  usuario_id: Int
+  nombre_completo: String
+  email: String
+  telefono: String
+  direccion_envio: String
+  id_cliente: Int!
+}
+
+input CreateCategoriaInput {
+  nombre: String!
+}
+
+input UpdateCategoriaInput {
+  nombre: String
+  id_categoria: Int!
+}
+
+input CreateTamanoInput {
+  descripcion: String!
+}
+
+input UpdateTamanoInput {
+  descripcion: String
+  id_tamano: Int!
+}
+
+input CreateProductoInput {
+  sku: String!
+  nombre: String!
+  categoria_id: Int!
+  tamano_id: Int!
+  precio_unitario: Float!
+  precio_mayoreo: Float
+  cantidad_minima_mayoreo: Int
+  costo_produccion: Float
+}
+
+input UpdateProductoInput {
+  sku: String
+  nombre: String
+  categoria_id: Int
+  tamano_id: Int
+  precio_unitario: Float
+  precio_mayoreo: Float
+  cantidad_minima_mayoreo: Int
+  costo_produccion: Float
+  id_producto: Int!
+  activo: Boolean
+}
+
+input CreateInsumoInput {
+  nombre: String!
+  unidad_medida: String
+  stock_minimo_alerta: Float
+}
+
+input UpdateInsumoInput {
+  nombre: String
+  unidad_medida: String
+  stock_minimo_alerta: Float
+  id_insumo: Int!
+  stock_actual: Float
+}
+
+input CreateCompraInsumoInput {
+  fecha_compra: DateTime!
+  proveedor: String
+  monto_total: Float
+  empleado_id: Int
+  comprobante_url: String
+  detalles: [CreateDetCompraInput!]!
+}
+
+input CreateDetCompraInput {
+  insumo_id: Int!
+  cantidad_comprada: Float!
+  costo_unitario: Float
+}
+
+input UpdateCompraInsumoInput {
+  fecha_compra: DateTime
+  proveedor: String
+  monto_total: Float
+  empleado_id: Int
+  comprobante_url: String
+  detalles: [CreateDetCompraInput!]
+  id_compra_insumo: Int!
+}
