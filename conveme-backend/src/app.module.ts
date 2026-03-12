@@ -19,6 +19,7 @@ import { TamanosModule } from './tamanos/tamanos.module';
 import { ProductosModule } from './productos/productos.module';
 import { InsumosModule } from './insumos/insumos.module';
 import { ComprasInsumosModule } from './compras-insumos/compras-insumos.module';
+import { OrdenesProduccionModule } from './ordenes-produccion/ordenes-produccion.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { ComprasInsumosModule } from './compras-insumos/compras-insumos.module';
     ProductosModule,
     InsumosModule,
     ComprasInsumosModule,
+    OrdenesProduccionModule,
   ],
 })
 export class AppModule {}
