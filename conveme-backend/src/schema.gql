@@ -188,6 +188,59 @@ type InventarioProducto {
   stock_minimo_alerta: Int!
 }
 
+type MovimientoInventario {
+  id_movimiento: Int!
+  producto_id: Int!
+  producto: Producto
+  tipo_movimiento: String!
+  cantidad: Int!
+  motivo: String!
+  fecha_movimiento: DateTime!
+  empleado_id: Int
+  empleado: Empleado
+}
+
+type DetAsignacion {
+  id_det_asignacion: Int!
+  asignacion_id: Int!
+  asignacion: AsignacionVendedor
+  producto_id: Int!
+  producto: Producto
+  cantidad_asignada: Int!
+}
+
+type AsignacionVendedor {
+  id_asignacion: Int!
+  vendedor_id: Int!
+  vendedor: Vendedor
+  fecha_asignacion: DateTime!
+  estado: String!
+  detalles: [DetAsignacion!]
+}
+
+type DetCorteInventario {
+  id_det_corte: Int!
+  corte_id: Int!
+  corte: CorteVendedor
+  producto_id: Int!
+  producto: Producto
+  cantidad_vendida: Int!
+  cantidad_devuelta: Int!
+  merma_o_perdida: Int!
+}
+
+type CorteVendedor {
+  id_corte: Int!
+  vendedor_id: Int!
+  vendedor: Vendedor
+  fecha_corte: DateTime!
+  total_ventas_reportadas: Float!
+  total_comision_vendedor: Float!
+  monto_entregado_empresa: Float!
+  estado: String!
+  detalles: [DetCorteInventario!]
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -221,6 +274,12 @@ type Query {
   ordenProduccion(id_orden_produccion: Int!): OrdenProduccion!
   inventariosProductos: [InventarioProducto!]!
   inventarioProducto(id_inventario: Int!): InventarioProducto!
+  movimientosInventario: [MovimientoInventario!]!
+  movimientoInventario(id_movimiento: Int!): MovimientoInventario!
+  asignacionesVendedor: [AsignacionVendedor!]!
+  asignacionVendedor(id_asignacion: Int!): AsignacionVendedor!
+  cortesVendedor: [CorteVendedor!]!
+  corteVendedor(id_corte: Int!): CorteVendedor!
 }
 
 type Mutation {
@@ -273,6 +332,15 @@ type Mutation {
   createInventarioProducto(createInventarioProductoInput: CreateInventarioProductoInput!): InventarioProducto!
   updateInventarioProducto(updateInventarioProductoInput: UpdateInventarioProductoInput!): InventarioProducto!
   removeInventarioProducto(id_inventario: Int!): Boolean!
+  createMovimientoInventario(createMovimientoInventarioInput: CreateMovimientoInventarioInput!): MovimientoInventario!
+  updateMovimientoInventario(updateMovimientoInventarioInput: UpdateMovimientoInventarioInput!): MovimientoInventario!
+  removeMovimientoInventario(id_movimiento: Int!): Boolean!
+  createAsignacionVendedor(createAsignacionVendedorInput: CreateAsignacionVendedorInput!): AsignacionVendedor!
+  updateAsignacionVendedor(updateAsignacionVendedorInput: UpdateAsignacionVendedorInput!): AsignacionVendedor!
+  removeAsignacionVendedor(id_asignacion: Int!): Boolean!
+  createCorteVendedor(createCorteVendedorInput: CreateCorteVendedorInput!): CorteVendedor!
+  updateCorteVendedor(updateCorteVendedorInput: UpdateCorteVendedorInput!): CorteVendedor!
+  removeCorteVendedor(id_corte: Int!): Boolean!
 }
 
 input CreateUsuarioInput {
@@ -541,4 +609,65 @@ input UpdateInventarioProductoInput {
   stock_minimo_alerta: Int
   id_inventario: Int!
   stock_actual: Int
+}
+
+input CreateMovimientoInventarioInput {
+  producto_id: Int!
+  tipo_movimiento: String!
+  cantidad: Int!
+  motivo: String!
+  empleado_id: Int
+}
+
+input UpdateMovimientoInventarioInput {
+  producto_id: Int
+  tipo_movimiento: String
+  cantidad: Int
+  motivo: String
+  empleado_id: Int
+  id_movimiento: Int!
+}
+
+input CreateAsignacionVendedorInput {
+  vendedor_id: Int!
+  estado: String
+  detalles: [CreateDetAsignacionInput!]!
+}
+
+input CreateDetAsignacionInput {
+  producto_id: Int!
+  cantidad_asignada: Int!
+}
+
+input UpdateAsignacionVendedorInput {
+  vendedor_id: Int
+  estado: String
+  detalles: [CreateDetAsignacionInput!]
+  id_asignacion: Int!
+}
+
+input CreateCorteVendedorInput {
+  vendedor_id: Int!
+  total_ventas_reportadas: Float!
+  total_comision_vendedor: Float!
+  monto_entregado_empresa: Float!
+  estado: String
+  detalles: [CreateDetCorteInput!]!
+}
+
+input CreateDetCorteInput {
+  producto_id: Int!
+  cantidad_vendida: Int! = 0
+  cantidad_devuelta: Int! = 0
+  merma_o_perdida: Int! = 0
+}
+
+input UpdateCorteVendedorInput {
+  vendedor_id: Int
+  total_ventas_reportadas: Float
+  total_comision_vendedor: Float
+  monto_entregado_empresa: Float
+  estado: String
+  detalles: [CreateDetCorteInput!]
+  id_corte: Int!
 }

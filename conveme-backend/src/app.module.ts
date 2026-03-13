@@ -21,6 +21,9 @@ import { InsumosModule } from './insumos/insumos.module';
 import { ComprasInsumosModule } from './compras-insumos/compras-insumos.module';
 import { OrdenesProduccionModule } from './ordenes-produccion/ordenes-produccion.module';
 import { InventarioProductosModule } from './inventario-productos/inventario-productos.module';
+import { MovimientosInventarioModule } from './movimientos-inventario/movimientos-inventario.module';
+import { AsignacionesVendedorModule } from './asignaciones-vendedor/asignaciones-vendedor.module';
+import { CortesVendedorModule } from './cortes-vendedor/cortes-vendedor.module';
 
 @Module({
   imports: [
@@ -57,6 +60,9 @@ import { InventarioProductosModule } from './inventario-productos/inventario-pro
     ComprasInsumosModule,
     OrdenesProduccionModule,
     InventarioProductosModule,
+    MovimientosInventarioModule,
+    AsignacionesVendedorModule,
+    CortesVendedorModule,
   ],
 })
 export class AppModule {}
