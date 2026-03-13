@@ -25,6 +25,10 @@ import { MovimientosInventarioModule } from './movimientos-inventario/movimiento
 import { AsignacionesVendedorModule } from './asignaciones-vendedor/asignaciones-vendedor.module';
 import { CortesVendedorModule } from './cortes-vendedor/cortes-vendedor.module';
 import { CuentasBancariasModule } from './cuentas-bancarias/cuentas-bancarias.module';
+import { SaldoVendedoresModule } from './saldo-vendedores/saldo-vendedores.module';
+import { PagosVendedoresModule } from './pagos-vendedores/pagos-vendedores.module';
+import { EventosModule } from './eventos/eventos.module';
+import { PromocionesModule } from './promociones/promociones.module';
 
 @Module({
   imports: [
@@ -65,6 +69,10 @@ import { CuentasBancariasModule } from './cuentas-bancarias/cuentas-bancarias.mo
     AsignacionesVendedorModule,
     CortesVendedorModule,
     CuentasBancariasModule,
+    SaldoVendedoresModule,
+    PagosVendedoresModule,
+    EventosModule,
+    PromocionesModule,
   ],
 })
 export class AppModule {}

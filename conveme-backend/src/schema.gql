@@ -254,6 +254,46 @@ type CuentaBancaria {
   activa: Boolean!
 }
 
+type SaldoVendedor {
+  id_saldo: Int!
+  vendedor_id: Int!
+  vendedor: Vendedor
+  saldo_actual: Float!
+}
+
+type PagoVendedor {
+  id_pago: Int!
+  vendedor_id: Int!
+  vendedor: Vendedor
+  fecha_pago: DateTime!
+  monto_pagado: Float!
+  metodo_pago: String!
+  referencia_o_comprobante: String
+}
+
+type Evento {
+  id_evento: Int!
+  nombre: String!
+  descripcion: String
+  fecha_inicio: DateTime!
+  fecha_fin: DateTime!
+  escuela_id: Int
+  municipio_id: Int
+  costo_stand: Float
+  activo: Boolean!
+}
+
+type Promocion {
+  id_promocion: Int!
+  nombre: String!
+  descripcion: String
+  tipo_promocion: String!
+  valor_descuento: Float
+  fecha_inicio: DateTime!
+  fecha_fin: DateTime!
+  activa: Boolean!
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -295,6 +335,14 @@ type Query {
   corteVendedor(id_corte: Int!): CorteVendedor!
   cuentasBancarias: [CuentaBancaria!]!
   cuentaBancaria(id_cuenta: Int!): CuentaBancaria!
+  saldosVendedores: [SaldoVendedor!]!
+  saldoVendedor(id_saldo: Int!): SaldoVendedor!
+  pagosVendedores: [PagoVendedor!]!
+  pagoVendedor(id_pago: Int!): PagoVendedor!
+  eventos: [Evento!]!
+  evento(id_evento: Int!): Evento!
+  promociones: [Promocion!]!
+  promocion(id_promocion: Int!): Promocion!
 }
 
 type Mutation {
@@ -359,6 +407,18 @@ type Mutation {
   createCuentaBancaria(createCuentaBancariaInput: CreateCuentaBancariaInput!): CuentaBancaria!
   updateCuentaBancaria(updateCuentaBancariaInput: UpdateCuentaBancariaInput!): CuentaBancaria!
   removeCuentaBancaria(id_cuenta: Int!): Boolean!
+  createSaldoVendedor(createSaldoVendedorInput: CreateSaldoVendedorInput!): SaldoVendedor!
+  updateSaldoVendedor(updateSaldoVendedorInput: UpdateSaldoVendedorInput!): SaldoVendedor!
+  removeSaldoVendedor(id_saldo: Int!): Boolean!
+  createPagoVendedor(createPagoVendedorInput: CreatePagoVendedorInput!): PagoVendedor!
+  updatePagoVendedor(updatePagoVendedorInput: UpdatePagoVendedorInput!): PagoVendedor!
+  removePagoVendedor(id_pago: Int!): Boolean!
+  createEvento(createEventoInput: CreateEventoInput!): Evento!
+  updateEvento(updateEventoInput: UpdateEventoInput!): Evento!
+  removeEvento(id_evento: Int!): Boolean!
+  createPromocion(createPromocionInput: CreatePromocionInput!): Promocion!
+  updatePromocion(updatePromocionInput: UpdatePromocionInput!): Promocion!
+  removePromocion(id_promocion: Int!): Boolean!
 }
 
 input CreateUsuarioInput {
@@ -708,4 +768,74 @@ input UpdateCuentaBancariaInput {
   clabe_interbancaria: String
   id_cuenta: Int!
   activa: Boolean
+}
+
+input CreateSaldoVendedorInput {
+  vendedor_id: Int!
+  saldo_actual: Float
+}
+
+input UpdateSaldoVendedorInput {
+  vendedor_id: Int
+  saldo_actual: Float
+  id_saldo: Int!
+}
+
+input CreatePagoVendedorInput {
+  vendedor_id: Int!
+  monto_pagado: Float!
+  metodo_pago: String!
+  referencia_o_comprobante: String
+}
+
+input UpdatePagoVendedorInput {
+  vendedor_id: Int
+  monto_pagado: Float
+  metodo_pago: String
+  referencia_o_comprobante: String
+  id_pago: Int!
+}
+
+input CreateEventoInput {
+  nombre: String!
+  descripcion: String
+  fecha_inicio: DateTime!
+  fecha_fin: DateTime!
+  escuela_id: Int
+  municipio_id: Int
+  costo_stand: Float
+  activo: Boolean
+}
+
+input UpdateEventoInput {
+  nombre: String
+  descripcion: String
+  fecha_inicio: DateTime
+  fecha_fin: DateTime
+  escuela_id: Int
+  municipio_id: Int
+  costo_stand: Float
+  activo: Boolean
+  id_evento: Int!
+}
+
+input CreatePromocionInput {
+  nombre: String!
+  descripcion: String
+  tipo_promocion: String!
+  valor_descuento: Float
+  fecha_inicio: DateTime!
+  fecha_fin: DateTime!
+  activa: Boolean
+}
+
+input UpdatePromocionInput {
+  nombre: String
+  descripcion: String
+  tipo_promocion: String
+  valor_descuento: Float
+  fecha_inicio: DateTime
+  fecha_fin: DateTime
+  activa: Boolean
+  id_promocion: Int!
 }
