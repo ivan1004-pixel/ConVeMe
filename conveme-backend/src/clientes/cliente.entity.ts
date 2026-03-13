@@ -19,8 +19,8 @@ export class Cliente {
   @JoinColumn({ name: 'usuario_id' })
   usuario: Usuario;
 
-  @Field()
-  @Column()
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   nombre_completo: string;
 
   @Field({ nullable: true })

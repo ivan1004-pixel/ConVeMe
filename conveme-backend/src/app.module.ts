@@ -29,6 +29,7 @@ import { SaldoVendedoresModule } from './saldo-vendedores/saldo-vendedores.modul
 import { PagosVendedoresModule } from './pagos-vendedores/pagos-vendedores.module';
 import { EventosModule } from './eventos/eventos.module';
 import { PromocionesModule } from './promociones/promociones.module';
+import { PedidosModule } from './pedidos/pedidos.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { PromocionesModule } from './promociones/promociones.module';
     PagosVendedoresModule,
     EventosModule,
     PromocionesModule,
+    PedidosModule,
   ],
 })
 export class AppModule {}

@@ -98,7 +98,7 @@ type Cliente {
   id_cliente: Int!
   usuario_id: Int
   usuario: Usuario
-  nombre_completo: String!
+  nombre_completo: String
   email: String
   telefono: String
   direccion_envio: String
@@ -294,6 +294,28 @@ type Promocion {
   activa: Boolean!
 }
 
+type DetPedido {
+  id_det_pedido: Int!
+  pedido_id: Int!
+  pedido: Pedido
+  producto_id: Int!
+  producto: Producto
+  cantidad: Int!
+  precio_unitario: Float!
+}
+
+type Pedido {
+  id_pedido: Int!
+  cliente_id: Int
+  cliente: Cliente
+  fecha_pedido: DateTime!
+  fecha_entrega_estimada: DateTime
+  monto_total: Float!
+  anticipo: Float!
+  estado: String!
+  detalles: [DetPedido!]
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -343,6 +365,8 @@ type Query {
   evento(id_evento: Int!): Evento!
   promociones: [Promocion!]!
   promocion(id_promocion: Int!): Promocion!
+  pedidos: [Pedido!]!
+  pedido(id_pedido: Int!): Pedido!
 }
 
 type Mutation {
@@ -419,6 +443,9 @@ type Mutation {
   createPromocion(createPromocionInput: CreatePromocionInput!): Promocion!
   updatePromocion(updatePromocionInput: UpdatePromocionInput!): Promocion!
   removePromocion(id_promocion: Int!): Boolean!
+  createPedido(createPedidoInput: CreatePedidoInput!): Pedido!
+  updatePedido(updatePedidoInput: UpdatePedidoInput!): Pedido!
+  removePedido(id_pedido: Int!): Boolean!
 }
 
 input CreateUsuarioInput {
@@ -838,4 +865,29 @@ input UpdatePromocionInput {
   fecha_fin: DateTime
   activa: Boolean
   id_promocion: Int!
+}
+
+input CreatePedidoInput {
+  cliente_id: Int
+  fecha_entrega_estimada: DateTime
+  monto_total: Float!
+  anticipo: Float = 0
+  estado: String
+  detalles: [CreateDetPedidoInput!]!
+}
+
+input CreateDetPedidoInput {
+  producto_id: Int!
+  cantidad: Int!
+  precio_unitario: Float!
+}
+
+input UpdatePedidoInput {
+  cliente_id: Int
+  fecha_entrega_estimada: DateTime
+  monto_total: Float
+  anticipo: Float = 0
+  estado: String
+  detalles: [CreateDetPedidoInput!]
+  id_pedido: Int!
 }
