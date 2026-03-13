@@ -316,6 +316,59 @@ type Pedido {
   detalles: [DetPedido!]
 }
 
+type DetVenta {
+  id_det_venta: Int!
+  venta_id: Int!
+  venta: Venta
+  producto_id: Int!
+  producto: Producto
+  cantidad: Int!
+  precio_unitario: Float!
+}
+
+type Venta {
+  id_venta: Int!
+  fecha_venta: DateTime!
+  cliente_id: Int
+  cliente: Cliente
+  vendedor_id: Int
+  vendedor: Vendedor
+  monto_total: Float!
+  metodo_pago: String
+  estado: String!
+  detalles: [DetVenta!]
+}
+
+type CategoriaGasto {
+  id_categoria: Int!
+  nombre: String!
+  descripcion: String
+  activa: Boolean!
+}
+
+type GastoOperativo {
+  id_gasto: Int!
+  categoria_id: Int!
+  categoria: CategoriaGasto
+  empleado_id: Int
+  empleado: Empleado
+  fecha_gasto: DateTime!
+  monto: Float!
+  descripcion: String!
+  comprobante_url: String
+}
+
+type BitacoraAuditoria {
+  id_auditoria: Int!
+  empleado_id: Int
+  empleado: Empleado
+  accion: String!
+  tabla_afectada: String!
+  registro_id: Int
+  detalles: String
+  fecha_hora: DateTime!
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -367,6 +420,14 @@ type Query {
   promocion(id_promocion: Int!): Promocion!
   pedidos: [Pedido!]!
   pedido(id_pedido: Int!): Pedido!
+  ventas: [Venta!]!
+  venta(id_venta: Int!): Venta!
+  categoriasGasto: [CategoriaGasto!]!
+  categoriaGasto(id_categoria: Int!): CategoriaGasto!
+  gastosOperativos: [GastoOperativo!]!
+  gastoOperativo(id_gasto: Int!): GastoOperativo!
+  bitacoraAuditorias: [BitacoraAuditoria!]!
+  bitacoraAuditoria(id_auditoria: Int!): BitacoraAuditoria!
 }
 
 type Mutation {
@@ -446,6 +507,16 @@ type Mutation {
   createPedido(createPedidoInput: CreatePedidoInput!): Pedido!
   updatePedido(updatePedidoInput: UpdatePedidoInput!): Pedido!
   removePedido(id_pedido: Int!): Boolean!
+  createVenta(createVentaInput: CreateVentaInput!): Venta!
+  updateVenta(updateVentaInput: UpdateVentaInput!): Venta!
+  removeVenta(id_venta: Int!): Boolean!
+  createCategoriaGasto(createCategoriaGastoInput: CreateCategoriaGastoInput!): CategoriaGasto!
+  updateCategoriaGasto(updateCategoriaGastoInput: UpdateCategoriaGastoInput!): CategoriaGasto!
+  removeCategoriaGasto(id_categoria: Int!): Boolean!
+  createGastoOperativo(createGastoOperativoInput: CreateGastoOperativoInput!): GastoOperativo!
+  updateGastoOperativo(updateGastoOperativoInput: UpdateGastoOperativoInput!): GastoOperativo!
+  removeGastoOperativo(id_gasto: Int!): Boolean!
+  createBitacoraAuditoria(createBitacoraAuditoriaInput: CreateBitacoraAuditoriaInput!): BitacoraAuditoria!
 }
 
 input CreateUsuarioInput {
@@ -890,4 +961,67 @@ input UpdatePedidoInput {
   estado: String
   detalles: [CreateDetPedidoInput!]
   id_pedido: Int!
+}
+
+input CreateVentaInput {
+  cliente_id: Int
+  vendedor_id: Int
+  monto_total: Float!
+  metodo_pago: String
+  estado: String
+  detalles: [CreateDetVentaInput!]!
+}
+
+input CreateDetVentaInput {
+  producto_id: Int!
+  cantidad: Int!
+  precio_unitario: Float!
+}
+
+input UpdateVentaInput {
+  cliente_id: Int
+  vendedor_id: Int
+  monto_total: Float
+  metodo_pago: String
+  estado: String
+  detalles: [CreateDetVentaInput!]
+  id_venta: Int!
+}
+
+input CreateCategoriaGastoInput {
+  nombre: String!
+  descripcion: String
+  activa: Boolean
+}
+
+input UpdateCategoriaGastoInput {
+  nombre: String
+  descripcion: String
+  activa: Boolean
+  id_categoria: Int!
+}
+
+input CreateGastoOperativoInput {
+  categoria_id: Int!
+  empleado_id: Int
+  monto: Float!
+  descripcion: String!
+  comprobante_url: String
+}
+
+input UpdateGastoOperativoInput {
+  categoria_id: Int
+  empleado_id: Int
+  monto: Float
+  descripcion: String
+  comprobante_url: String
+  id_gasto: Int!
+}
+
+input CreateBitacoraAuditoriaInput {
+  empleado_id: Int
+  accion: String!
+  tabla_afectada: String!
+  registro_id: Int
+  detalles: String
 }

@@ -30,6 +30,10 @@ import { PagosVendedoresModule } from './pagos-vendedores/pagos-vendedores.modul
 import { EventosModule } from './eventos/eventos.module';
 import { PromocionesModule } from './promociones/promociones.module';
 import { PedidosModule } from './pedidos/pedidos.module';
+import { VentasModule } from './ventas/ventas.module';
+import { CategoriasGastoModule } from './categorias-gasto/categorias-gasto.module';
+import { GastosOperativosModule } from './gastos-operativos/gastos-operativos.module';
+import { BitacoraAuditoriaModule } from './bitacora-auditoria/bitacora-auditoria.module';
 
 @Module({
   imports: [
@@ -75,6 +79,10 @@ import { PedidosModule } from './pedidos/pedidos.module';
     EventosModule,
     PromocionesModule,
     PedidosModule,
+    VentasModule,
+    CategoriasGastoModule,
+    GastosOperativosModule,
+    BitacoraAuditoriaModule,
   ],
 })
 export class AppModule {}
