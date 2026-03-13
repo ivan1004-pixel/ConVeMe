@@ -12,7 +12,7 @@ export class CreateDetCorteInput {
     cantidad_devuelta: number;
 
     @Field(() => Int, { defaultValue: 0 })
-    merma_o_perdida: number;
+    merma_reportada: number;
 }
 
 @InputType()
@@ -20,17 +20,20 @@ export class CreateCorteVendedorInput {
     @Field(() => Int)
     vendedor_id: number;
 
-    @Field(() => Float)
-    total_ventas_reportadas: number;
+    @Field(() => Int)
+    asignacion_id: number; // Agregado
 
     @Field(() => Float)
-    total_comision_vendedor: number;
+    dinero_esperado: number;
 
     @Field(() => Float)
-    monto_entregado_empresa: number;
+    dinero_total_entregado: number;
+
+    @Field(() => Float)
+    diferencia_corte: number;
 
     @Field({ nullable: true })
-    estado?: string;
+    observaciones?: string;
 
     @Field(() => [CreateDetCorteInput])
     detalles: CreateDetCorteInput[];

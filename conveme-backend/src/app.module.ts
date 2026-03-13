@@ -24,6 +24,7 @@ import { InventarioProductosModule } from './inventario-productos/inventario-pro
 import { MovimientosInventarioModule } from './movimientos-inventario/movimientos-inventario.module';
 import { AsignacionesVendedorModule } from './asignaciones-vendedor/asignaciones-vendedor.module';
 import { CortesVendedorModule } from './cortes-vendedor/cortes-vendedor.module';
+import { CuentasBancariasModule } from './cuentas-bancarias/cuentas-bancarias.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { CortesVendedorModule } from './cortes-vendedor/cortes-vendedor.module';
     MovimientosInventarioModule,
     AsignacionesVendedorModule,
     CortesVendedorModule,
+    CuentasBancariasModule,
   ],
 })
 export class AppModule {}

@@ -34,9 +34,9 @@ export class DetCorteInventario {
 
     @Field(() => Int)
     @Column({ default: 0 })
-    cantidad_devuelta: number; // Pines físicos que te regresan
+    cantidad_devuelta: number;
 
     @Field(() => Int)
     @Column({ default: 0 })
-    merma_o_perdida: number; // Pines que se perdieron o dañaron
+    merma_reportada: number; // Modificado para que sea idéntico a tu imagen
 }

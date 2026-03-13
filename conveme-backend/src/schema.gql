@@ -226,19 +226,32 @@ type DetCorteInventario {
   producto: Producto
   cantidad_vendida: Int!
   cantidad_devuelta: Int!
-  merma_o_perdida: Int!
+  merma_reportada: Int!
 }
 
 type CorteVendedor {
   id_corte: Int!
   vendedor_id: Int!
   vendedor: Vendedor
+  asignacion_id: Int!
+  asignacion: AsignacionVendedor
   fecha_corte: DateTime!
-  total_ventas_reportadas: Float!
-  total_comision_vendedor: Float!
-  monto_entregado_empresa: Float!
-  estado: String!
+  dinero_esperado: Float!
+  dinero_total_entregado: Float!
+  diferencia_corte: Float!
+  observaciones: String
   detalles: [DetCorteInventario!]
+}
+
+type CuentaBancaria {
+  id_cuenta: Int!
+  vendedor_id: Int!
+  vendedor: Vendedor
+  banco: String!
+  titular_cuenta: String!
+  numero_cuenta: String!
+  clabe_interbancaria: String
+  activa: Boolean!
 }
 
 type Query {
@@ -280,6 +293,8 @@ type Query {
   asignacionVendedor(id_asignacion: Int!): AsignacionVendedor!
   cortesVendedor: [CorteVendedor!]!
   corteVendedor(id_corte: Int!): CorteVendedor!
+  cuentasBancarias: [CuentaBancaria!]!
+  cuentaBancaria(id_cuenta: Int!): CuentaBancaria!
 }
 
 type Mutation {
@@ -341,6 +356,9 @@ type Mutation {
   createCorteVendedor(createCorteVendedorInput: CreateCorteVendedorInput!): CorteVendedor!
   updateCorteVendedor(updateCorteVendedorInput: UpdateCorteVendedorInput!): CorteVendedor!
   removeCorteVendedor(id_corte: Int!): Boolean!
+  createCuentaBancaria(createCuentaBancariaInput: CreateCuentaBancariaInput!): CuentaBancaria!
+  updateCuentaBancaria(updateCuentaBancariaInput: UpdateCuentaBancariaInput!): CuentaBancaria!
+  removeCuentaBancaria(id_cuenta: Int!): Boolean!
 }
 
 input CreateUsuarioInput {
@@ -648,10 +666,11 @@ input UpdateAsignacionVendedorInput {
 
 input CreateCorteVendedorInput {
   vendedor_id: Int!
-  total_ventas_reportadas: Float!
-  total_comision_vendedor: Float!
-  monto_entregado_empresa: Float!
-  estado: String
+  asignacion_id: Int!
+  dinero_esperado: Float!
+  dinero_total_entregado: Float!
+  diferencia_corte: Float!
+  observaciones: String
   detalles: [CreateDetCorteInput!]!
 }
 
@@ -659,15 +678,34 @@ input CreateDetCorteInput {
   producto_id: Int!
   cantidad_vendida: Int! = 0
   cantidad_devuelta: Int! = 0
-  merma_o_perdida: Int! = 0
+  merma_reportada: Int! = 0
 }
 
 input UpdateCorteVendedorInput {
   vendedor_id: Int
-  total_ventas_reportadas: Float
-  total_comision_vendedor: Float
-  monto_entregado_empresa: Float
-  estado: String
+  asignacion_id: Int
+  dinero_esperado: Float
+  dinero_total_entregado: Float
+  diferencia_corte: Float
+  observaciones: String
   detalles: [CreateDetCorteInput!]
   id_corte: Int!
+}
+
+input CreateCuentaBancariaInput {
+  vendedor_id: Int!
+  banco: String!
+  titular_cuenta: String!
+  numero_cuenta: String!
+  clabe_interbancaria: String
+}
+
+input UpdateCuentaBancariaInput {
+  vendedor_id: Int
+  banco: String
+  titular_cuenta: String
+  numero_cuenta: String
+  clabe_interbancaria: String
+  id_cuenta: Int!
+  activa: Boolean
 }

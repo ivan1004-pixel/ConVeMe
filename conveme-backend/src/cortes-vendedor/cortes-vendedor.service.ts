@@ -20,14 +20,15 @@ export class CortesVendedorService {
 
     async findAll(): Promise<CorteVendedor[]> {
         return this.corteRepository.find({
-            relations: ['vendedor', 'detalles', 'detalles.producto']
+            // Le agregamos 'asignacion' para que se traiga el folio original
+            relations: ['vendedor', 'asignacion', 'detalles', 'detalles.producto']
         });
     }
 
     async findOne(id_corte: number): Promise<CorteVendedor> {
         const corte = await this.corteRepository.findOne({
             where: { id_corte },
-            relations: ['vendedor', 'detalles', 'detalles.producto'],
+            relations: ['vendedor', 'asignacion', 'detalles', 'detalles.producto'],
         });
         if (!corte) throw new NotFoundException(`Corte #${id_corte} no encontrado`);
         return corte;

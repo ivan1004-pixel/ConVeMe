@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, CreateDateColumn } from 'typeorm';
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Vendedor } from '../../vendedores/vendedor.entity';
+import { AsignacionVendedor } from '../../asignaciones-vendedor/entities/asignacion-vendedor.entity';
 import { DetCorteInventario } from './det-corte-inventario.entity';
 
 @ObjectType()
@@ -19,27 +20,36 @@ export class CorteVendedor {
     @JoinColumn({ name: 'vendedor_id' })
     vendedor: Vendedor;
 
+    @Field(() => Int)
+    @Column()
+    asignacion_id: number;
+
+    @Field(() => AsignacionVendedor, { nullable: true })
+    @ManyToOne(() => AsignacionVendedor)
+    @JoinColumn({ name: 'asignacion_id' })
+    asignacion: AsignacionVendedor;
+
     @Field()
     @CreateDateColumn()
     fecha_corte: Date;
 
     @Field(() => Float)
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    total_ventas_reportadas: number;
-
-    // Monto exacto en dinero, no porcentaje
-    @Field(() => Float)
-    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    total_comision_vendedor: number;
+    dinero_esperado: number;
 
     @Field(() => Float)
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-    monto_entregado_empresa: number;
+    dinero_total_entregado: number;
 
-    @Field()
-    @Column({ default: 'Aprobado' }) // Aprobado, Pendiente, Con Diferencias
-    estado: string;
+    @Field(() => Float)
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    diferencia_corte: number;
 
+    @Field({ nullable: true })
+    @Column({ type: 'text', nullable: true })
+    observaciones: string;
+
+    // DOCUMENTACIÓN: Guardado en cascada para el detalle del inventario
     @Field(() => [DetCorteInventario], { nullable: true })
     @OneToMany(() => DetCorteInventario, detalle => detalle.corte, { cascade: true })
     detalles: DetCorteInventario[];
