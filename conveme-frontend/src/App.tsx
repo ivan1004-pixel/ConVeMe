@@ -1,11 +1,14 @@
 import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login'; // Importamos tu diseño
+import Home from './pages/Home';
+import Login from './pages/Login';
+import CreateUser from './pages/CreateUser';
 
 function App() {
   return (
     <Routes>
-    {/* Que el Login sea la primera pantalla al entrar */}
-    <Route path="/" element={<Login />} />
+    <Route path="/" element={<Home />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/crear-usuario" element={<CreateUser />} />
     </Routes>
   );
 }

@@ -2,455 +2,597 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
+import { useAuth } from '../hooks/useAuth';
+
 import mascotaImg from '../assets/mascota.jpg';
 import letrasImg from '../assets/logob.png';
 
 export default function Login() {
-    const [email, setEmail]       = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading]   = useState(false);
-    const [exito, setExito]       = useState(false);
     const [showPass, setShowPass] = useState(false);
+
+    const { loading, error, exito, iniciarSesion } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            setExito(true);
+        const fueExitoso = await iniciarSesion(username, password);
+        if (fueExitoso) {
             setTimeout(() => navigate('/dashboard'), 2000);
-        }, 1500);
+        }
     };
 
     return (
         <>
         <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
             *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+            html, body, #root {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            /* ══════════════════════════════
+             *              ROOT — full viewport split
+             *           ══════════════════════════════ */
             .login-root {
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                width: 100vw;
+                height: 100vh;
                 font-family: 'DM Sans', sans-serif;
-                padding: 20px;
-                background-color: #ede9fe;
-                background-image: radial-gradient(circle, #c084fc44 1.5px, transparent 1.5px);
-                background-size: 28px 28px;
-            }
-
-            /* ── PHONE SHELL ── */
-            .phone {
-                position: relative;
-                width: 340px;
-                min-height: 680px;
-                background: #cc55ff;
-                border-radius: 44px;
-                border: 4px solid #1a0060;
-                box-shadow:
-                0 0 0 7px #e8b4ff,
-                0 0 0 11px #1a0060,
-                18px 22px 0px #1a0060,
-                28px 32px 50px rgba(100,0,200,0.3);
-                overflow: hidden;
-                display: flex;
-            }
-
-            /* ── LEFT COLUMN ── */
-            .left-col {
-                width: 68px;
-                flex-shrink: 0;
-                background: #cc55ff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-right: 3px solid rgba(26,0,96,0.2);
-                position: relative;
-                z-index: 2;
                 overflow: hidden;
             }
 
-            /* Deco circles on left */
-            .left-col::before {
-                content: '';
-    position: absolute;
-    top: 28px; left: 50%;
-    transform: translateX(-50%);
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.3);
-    pointer-events: none;
-            }
-            .left-col::after {
-                content: '';
-    position: absolute;
-    bottom: 36px; left: 50%;
-    transform: translateX(-50%);
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.25);
-    pointer-events: none;
-            }
-
-            .logo-img {
-                /* Fit the full logo text vertically rotated */
-                width: 580px;
-                max-width: none;
-                height: 60px;
-                object-fit: contain;
-                object-position: center;
-                transform: rotate(-90deg);
-                filter: drop-shadow(2px 3px 0px rgba(26,0,96,0.55));
-            }
-
-            /* ── RIGHT COLUMN ── */
-            .right-col {
-                flex: 1;
+            /* ══════════════════════════════
+             *              LEFT PANEL
+             *           ══════════════════════════════ */
+            .panel-left {
+                position: relative;
+                background: #cc55ff;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding: 26px 20px 22px 14px;
-                position: relative;
+                justify-content: center;
                 overflow: hidden;
+                padding: 48px;
             }
 
-            /* Big circle deco behind form */
-            .right-col::before {
+            /* Dot-grid background */
+            .panel-left::before {
                 content: '';
     position: absolute;
-    bottom: -50px; right: -50px;
-    width: 170px; height: 170px;
-    border-radius: 50%;
-    border: 4px solid rgba(255,255,255,0.25);
-    pointer-events: none;
-            }
-            .right-col::after {
-                content: '';
-    position: absolute;
-    bottom: 30px; right: 24px;
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.18);
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.25) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
     pointer-events: none;
             }
 
-            /* ── MASCOT ── */
+            /* Decorative blobs */
+            .blob {
+                position: absolute;
+                border-radius: 50%;
+                pointer-events: none;
+            }
+            .blob-1 {
+                width: 340px; height: 340px;
+                background: rgba(255,255,255,0.12);
+                top: -80px; left: -80px;
+                border: 4px solid rgba(255,255,255,0.18);
+            }
+            .blob-2 {
+                width: 220px; height: 220px;
+                background: rgba(26,0,96,0.12);
+                bottom: -60px; right: -60px;
+                border: 4px solid rgba(26,0,96,0.14);
+            }
+            .blob-3 {
+                width: 120px; height: 120px;
+                background: rgba(255,225,68,0.18);
+                bottom: 100px; left: 40px;
+                border: 3px solid rgba(255,225,68,0.28);
+            }
+
+            .left-content {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 28px;
+                text-align: center;
+            }
+
+            /* Logo banner */
+            .logo-banner {
+                background: #1a0060;
+                border-radius: 20px;
+                padding: 16px 32px;
+                box-shadow: 6px 6px 0px rgba(0,0,0,0.3);
+            }
+            .logo-banner img {
+                height: 52px;
+                width: auto;
+                display: block;
+                filter: brightness(10);
+            }
+
+            /* Mascot */
+            @keyframes pulse-ring {
+                0%   { transform: scale(1);   opacity: 0.7; }
+                100% { transform: scale(1.7); opacity: 0; }
+            }
             .mascot-wrap {
                 position: relative;
-                width: 96px;
-                height: 96px;
+                width: 148px;
+                height: 148px;
                 border-radius: 50%;
-                border: 3.5px solid #1a0060;
+                border: 4px solid #1a0060;
                 background: #fff;
-                overflow: hidden;
-                box-shadow: 4px 4px 0px #1a0060, 0 0 0 5px rgba(255,255,255,0.35);
+                overflow: visible;
+                box-shadow: 6px 6px 0px #1a0060, 0 0 0 6px rgba(255,255,255,0.3);
             }
             .mascot-wrap img {
                 width: 100%;
                 height: 100%;
+                border-radius: 50%;
                 object-fit: cover;
-            }
-
-            @keyframes pulse-ring {
-                0%   { transform: scale(1);   opacity: 0.65; }
-                100% { transform: scale(1.6); opacity: 0; }
+                display: block;
             }
             .mascot-wrap::after {
                 content: '';
     position: absolute;
-    inset: -7px;
+    inset: -10px;
     border-radius: 50%;
     border: 3px solid rgba(255,255,255,0.6);
-    animation: pulse-ring 2.3s ease-out infinite;
+    animation: pulse-ring 2.4s ease-out infinite;
     pointer-events: none;
             }
 
-            /* ── WELCOME BADGE ── */
-            .welcome-badge {
-                position: relative;
+            /* Welcome text */
+            .welcome-heading {
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: clamp(28px, 3.5vw, 44px);
+                color: #1a0060;
+                line-height: 1.1;
+                text-shadow: 3px 3px 0px rgba(255,255,255,0.35);
+            }
+            .welcome-sub {
+                font-size: clamp(13px, 1.2vw, 16px);
+                font-weight: 500;
+                color: rgba(26,0,96,0.7);
+                max-width: 280px;
+                line-height: 1.55;
+            }
+
+            /* Tag pill */
+            .tag-pill {
                 background: #ffe144;
                 border: 2.5px solid #1a0060;
-                border-radius: 12px;
-                box-shadow: 3px 3px 0px #1a0060;
-                padding: 8px 22px;
-                margin: 12px 0 4px;
+                border-radius: 40px;
+                padding: 6px 20px;
                 font-family: 'Syne', sans-serif;
                 font-weight: 800;
-                font-size: 13px;
+                font-size: 12px;
                 color: #1a0060;
-                text-align: center;
-                line-height: 1.3;
+                letter-spacing: .08em;
+                box-shadow: 3px 3px 0px #1a0060;
             }
-            .welcome-badge::before,
-            .welcome-badge::after {
+
+            /* ══════════════════════════════
+             *              RIGHT PANEL
+             *           ══════════════════════════════ */
+            .panel-right {
+                position: relative;
+                background: #ede9fe;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                padding: 48px;
+            }
+
+            /* Subtle dot grid on right too */
+            .panel-right::before {
                 content: '';
     position: absolute;
-    top: 50%; transform: translateY(-50%);
-    width: 13px; height: 13px;
+    inset: 0;
+    background-image: radial-gradient(circle, #c084fc33 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    pointer-events: none;
+            }
+
+            /* Decorative corner accent */
+            .panel-right::after {
+                content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
     border-radius: 50%;
-    background: #cc55ff;
-    border: 2.5px solid #1a0060;
-            }
-            .welcome-badge::before { left: -7px; }
-            .welcome-badge::after  { right: -7px; }
-
-            /* ── TITLE ── */
-            .section-title {
-                font-family: 'Syne', sans-serif;
-                font-weight: 700;
-                font-size: 15px;
-                color: #1a0060;
-                align-self: flex-start;
-                margin: 14px 0 10px;
+    border: 4px solid rgba(204,85,255,0.18);
+    pointer-events: none;
             }
 
-            /* ── FORM ── */
-            .form-wrap {
+            .corner-accent-br {
+                position: absolute;
+                bottom: -80px; left: -80px;
+                width: 300px; height: 300px;
+                border-radius: 50%;
+                border: 4px solid rgba(204,85,255,0.12);
+                pointer-events: none;
+            }
+
+            /* Form card */
+            .form-card {
+                position: relative;
+                z-index: 2;
                 width: 100%;
+                max-width: 400px;
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                gap: 0;
+            }
+
+            .form-eyebrow {
+                font-family: 'Syne', sans-serif;
+                font-weight: 700;
+                font-size: 11px;
+                letter-spacing: .14em;
+                text-transform: uppercase;
+                color: #cc55ff;
+                margin-bottom: 8px;
+            }
+
+            .form-title {
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: clamp(26px, 3vw, 38px);
+                color: #1a0060;
+                line-height: 1.05;
+                margin-bottom: 6px;
+            }
+
+            .form-subtitle {
+                font-size: 13px;
+                font-weight: 400;
+                color: rgba(26,0,96,0.55);
+                margin-bottom: 32px;
+                line-height: 1.5;
+            }
+
+            /* Divider */
+            .form-divider {
+                width: 48px;
+                height: 4px;
+                background: #cc55ff;
+                border-radius: 4px;
+                margin-bottom: 28px;
+            }
+
+            /* Fields */
+            .field-group {
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+                margin-bottom: 12px;
             }
 
             .field-label {
                 display: block;
                 font-family: 'Syne', sans-serif;
                 font-weight: 700;
-                font-size: 10px;
-                letter-spacing: .09em;
+                font-size: 10.5px;
+                letter-spacing: .1em;
                 text-transform: uppercase;
                 color: #1a0060;
-                margin-bottom: 4px;
+                margin-bottom: 6px;
             }
 
             .field-wrap { position: relative; }
 
             .field-input {
                 width: 100%;
-                background: #f3e8ff;
-                border: 2.5px solid #1a0060;
-                border-radius: 10px;
-                padding: 10px 36px 10px 12px;
+                background: #fff;
+                border: 2.5px solid #d4b8f0;
+                border-radius: 12px;
+                padding: 13px 42px 13px 16px;
                 font-family: 'DM Sans', sans-serif;
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: 500;
                 color: #1a0060;
                 outline: none;
-                box-shadow: 2px 2px 0px #1a0060;
-                transition: background .15s, border-color .15s, box-shadow .15s;
+                transition: border-color .18s, box-shadow .18s, background .18s;
             }
-            .field-input::placeholder { color: #a78abe; font-weight: 400; }
+            .field-input::placeholder { color: #b9a0d4; font-weight: 400; }
             .field-input:focus {
-                background: #fff;
-                border-color: #7c22cc;
-                box-shadow: 3px 3px 0px #7c22cc;
+                border-color: #cc55ff;
+                box-shadow: 0 0 0 3px rgba(204,85,255,0.15), 3px 3px 0px #1a0060;
+                background: #fdf6ff;
             }
             .field-input:disabled { opacity: .6; cursor: not-allowed; }
 
             .pass-toggle {
                 position: absolute;
-                right: 10px; top: 50%;
+                right: 12px; top: 50%;
                 transform: translateY(-50%);
                 background: none;
                 border: none;
                 cursor: pointer;
-                font-size: 14px;
+                font-size: 16px;
                 line-height: 1;
                 padding: 2px;
-                color: #7c22cc;
+                color: #9b59c4;
+                transition: opacity .15s;
             }
+            .pass-toggle:hover { opacity: .7; }
 
             .forgot-link {
                 text-align: right;
-                font-family: 'DM Sans', sans-serif;
-                font-size: 11px;
+                font-size: 11.5px;
                 font-weight: 600;
-                color: #1a0060;
+                color: #7c22cc;
                 text-decoration: underline dotted;
                 cursor: pointer;
-                opacity: .7;
                 transition: opacity .15s;
-                margin-top: -4px;
+                margin-top: -10px;
+                margin-bottom: 8px;
+                display: block;
             }
-            .forgot-link:hover { opacity: 1; }
+            .forgot-link:hover { opacity: .7; }
 
-            /* ── BUTTON ── */
+            /* Error */
+            .error-msg {
+                background: #ffe5e8;
+                border: 2px solid #ff4d6d;
+                border-radius: 10px;
+                padding: 10px 14px;
+                color: #c1002b;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 4px;
+                text-align: center;
+            }
+
+            /* Button */
             .btn-login {
                 width: 100%;
                 background: #1a0060;
                 color: #ffe144;
                 font-family: 'Syne', sans-serif;
                 font-weight: 900;
-                font-size: 14px;
-                letter-spacing: .14em;
+                font-size: 15px;
+                letter-spacing: .12em;
                 text-transform: uppercase;
                 border: 2.5px solid #1a0060;
-                border-radius: 12px;
-                padding: 13px;
+                border-radius: 14px;
+                padding: 16px;
                 cursor: pointer;
-                box-shadow: 4px 4px 0px rgba(0,0,0,0.4);
-                transition: transform .12s, box-shadow .12s, background .18s;
-                margin-top: 2px;
+                box-shadow: 5px 5px 0px rgba(0,0,0,0.35);
+                transition: transform .12s, box-shadow .12s, background .2s, color .2s;
+                margin-top: 6px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
             }
             .btn-login:hover:not(:disabled) {
-                transform: translate(-2px,-2px);
-                box-shadow: 6px 6px 0px rgba(0,0,0,0.4);
+                transform: translate(-2px, -2px);
+                box-shadow: 7px 7px 0px rgba(0,0,0,0.35);
             }
             .btn-login:active:not(:disabled) {
-                transform: translate(3px,3px);
-                box-shadow: 1px 1px 0px rgba(0,0,0,0.4);
+                transform: translate(3px, 3px);
+                box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
             }
             .btn-login:disabled { opacity: .75; cursor: not-allowed; }
-            .btn-login.success  { background: #06d6a0; color: #fff; border-color: #05b589; }
+            .btn-login.success { background: #06d6a0; color: #fff; border-color: #05b589; }
 
             @keyframes spin { to { transform: rotate(360deg); } }
             .spinner { display: inline-block; animation: spin 1s linear infinite; }
 
-            .login-footer {
-                font-family: 'DM Sans', sans-serif;
-                font-size: 9.5px;
+            .form-footer {
+                font-size: 11px;
                 font-weight: 500;
-                color: rgba(26,0,96,0.45);
+                color: rgba(26,0,96,0.4);
                 text-align: center;
-                margin-top: 14px;
+                margin-top: 22px;
             }
 
-            /* ── SUCCESS OVERLAY ── */
+            /* ══════════════════════════════
+             *              SUCCESS OVERLAY
+             *           ══════════════════════════════ */
             .success-overlay {
-                position: absolute;
+                position: fixed;
                 inset: 0;
-                background: rgba(237,220,255,0.97);
-                border-radius: 40px;
+                background: rgba(237,233,254,0.97);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                z-index: 100;
+                gap: 14px;
+                z-index: 999;
             }
 
             @keyframes dot-bounce {
                 0%,80%,100% { transform: translateY(0);  opacity: .4; }
-                40%          { transform: translateY(-5px); opacity: 1; }
+                40%          { transform: translateY(-6px); opacity: 1; }
             }
-            .dot { display:inline-block; animation: dot-bounce 1.2s ease-in-out infinite; }
-            .dot:nth-child(2) { animation-delay:.2s; }
-            .dot:nth-child(3) { animation-delay:.4s; }
+            .dot { display: inline-block; animation: dot-bounce 1.2s ease-in-out infinite; }
+            .dot:nth-child(2) { animation-delay: .2s; }
+            .dot:nth-child(3) { animation-delay: .4s; }
+
+            /* ══════════════════════════════
+             *              RESPONSIVE — stack on mobile
+             *           ══════════════════════════════ */
+            @media (max-width: 768px) {
+                .login-root {
+                    grid-template-columns: 1fr;
+                    grid-template-rows: auto 1fr;
+                    overflow-y: auto;
+                    height: auto;
+                    min-height: 100vh;
+                }
+                .panel-left {
+                    padding: 36px 24px 32px;
+                    min-height: auto;
+                }
+                .mascot-wrap {
+                    width: 110px;
+                    height: 110px;
+                }
+                .welcome-heading { font-size: 28px; }
+                .panel-right {
+                    padding: 40px 24px;
+                }
+                html, body, #root { overflow: auto; }
+            }
             `}</style>
 
-            <div className="login-root">
-            <motion.div
-            className="phone"
-            initial={{ opacity: 0, y: 60, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-            >
-            {/* ── SUCCESS OVERLAY ── */}
+            {/* SUCCESS OVERLAY */}
             <AnimatePresence>
             {exito && (
                 <motion.div
                 className="success-overlay"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+                transition={{ duration: 0.4 }}
                 >
                 <motion.span
-                style={{ fontSize: 62 }}
+                style={{ fontSize: 80 }}
                 initial={{ scale: 0, rotate: -30 }}
-                animate={{ scale: [0, 1.3, 1], rotate: [0, 12, 0] }}
+                animate={{ scale: [0, 1.3, 1], rotate: [0, 14, 0] }}
                 transition={{ type: 'spring', stiffness: 240, damping: 12, delay: 0.1 }}
                 >
                 🎉
                 </motion.span>
-                <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 900, fontSize: 21, color: '#1a0060' }}>
+                <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 900, fontSize: 28, color: '#1a0060' }}>
                 ¡Acceso Concedido!
                 </p>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 12, color: 'rgba(26,0,96,0.55)', fontWeight: 500 }}>
+                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: 'rgba(26,0,96,0.55)', fontWeight: 500 }}>
                 Cargando ERP<span className="dot">.</span><span className="dot">.</span><span className="dot">.</span>
                 </p>
                 </motion.div>
             )}
             </AnimatePresence>
 
-            {/* ── LEFT COLUMN ── */}
-            <div className="left-col">
-            <motion.img
-            className="logo-img"
-            src={letrasImg}
-            alt="NoManches Mx"
-            initial={{ opacity: 0, x: -24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.45, duration: 0.6 }}
-            />
-            </div>
+            <div className="login-root">
 
-            {/* ── RIGHT COLUMN ── */}
-            <div className="right-col">
+            {/* ══ LEFT PANEL ══ */}
+            <motion.div
+            className="panel-left"
+            initial={{ opacity: 0, x: -60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+            <div className="blob blob-1" />
+            <div className="blob blob-2" />
+            <div className="blob blob-3" />
+
+            <div className="left-content">
+            {/* Logo */}
+            <motion.div
+            className="logo-banner"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            >
+            <img src={letrasImg} alt="NoManches Mx" />
+            </motion.div>
 
             {/* Mascot */}
             <motion.div
             className="mascot-wrap"
-            initial={{ scale: 0, rotate: -200 }}
+            initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 190, damping: 13, delay: 0.2 }}
+            transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.2 }}
             >
             <img src={mascotaImg} alt="Mascota NoManches" />
             </motion.div>
 
-            {/* Welcome badge */}
+            {/* Heading */}
             <motion.div
-            className="welcome-badge"
-            initial={{ opacity: 0, y: -12 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.42, type: 'spring', stiffness: 200, damping: 16 }}
+            transition={{ delay: 0.45, duration: 0.55 }}
             >
-            ¡Bienvenido<br />NoMancherito!
+            <p className="welcome-heading">¡Hola,<br />NoMancherito!</p>
             </motion.div>
 
-            {/* Section title */}
             <motion.p
-            className="section-title"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.52 }}
+            className="welcome-sub"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.56 }}
             >
-            Iniciar sesión
+            Tu ERP favorito te espera. Inicia sesión para continuar.
             </motion.p>
 
-            {/* Form */}
-            <motion.form
-            className="form-wrap"
-            onSubmit={handleSubmit}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.58 }}
+            <motion.span
+            className="tag-pill"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.65, type: 'spring', stiffness: 200 }}
             >
-            {/* Email */}
+            © 2026 NoManches Mx
+            </motion.span>
+            </div>
+            </motion.div>
+
+            {/* ══ RIGHT PANEL ══ */}
+            <motion.div
+            className="panel-right"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+            <div className="corner-accent-br" />
+
+            <div className="form-card">
+            <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.55 }}
+            >
+            <p className="form-eyebrow">Sistema ERP</p>
+            <h1 className="form-title">Iniciar<br />sesión</h1>
+            <p className="form-subtitle">Ingresa tus credenciales para acceder al sistema.</p>
+            <div className="form-divider" />
+            </motion.div>
+
+            <motion.form
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.44 }}
+            >
+            {error && (
+                <div className="error-msg" style={{ marginBottom: 16 }}>{error}</div>
+            )}
+
+            <div className="field-group">
+            {/* Usuario */}
             <div>
-            <label className="field-label">Email</label>
+            <label className="field-label">Usuario</label>
             <div className="field-wrap">
             <input
-            type="email"
+            type="text"
             className="field-input"
-            placeholder="tu@correo.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            placeholder="tu_usuario"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
             required
             disabled={loading || exito}
-            autoComplete="email"
+            autoComplete="username"
             />
             </div>
             </div>
 
-            {/* Password */}
+            {/* Contraseña */}
             <div>
             <label className="field-label">Contraseña</label>
             <div className="field-wrap">
@@ -475,11 +617,10 @@ export default function Login() {
             </button>
             </div>
             </div>
+            </div>
 
-            {/* Forgot */}
             <a href="#" className="forgot-link">¿Olvidaste tu contraseña?</a>
 
-            {/* Submit */}
             <motion.button
             type="submit"
             className={`btn-login${exito ? ' success' : ''}`}
@@ -495,19 +636,12 @@ export default function Login() {
                 <>Entrar →</>
             )}
             </motion.button>
-            </motion.form>
 
-            {/* Footer */}
-            <motion.p
-            className="login-footer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            >
-            © 2025 NoManches Mx · ERP v2.0
-            </motion.p>
+            <p className="form-footer">Acceso restringido al personal autorizado.</p>
+            </motion.form>
             </div>
             </motion.div>
+
             </div>
             </>
     );

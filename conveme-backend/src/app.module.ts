@@ -51,7 +51,7 @@ import { BitacoraAuditoriaModule } from './bitacora-auditoria/bitacora-auditoria
       password: '12345',      // Tu contraseña de BD
       database: 'conveme_bd', // El nombre de la base de datos
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true, // Solo para desarrollo. Crea las tablas automáticamente.
+      synchronize: true,
     }),
     UsuariosModule,
     AuthModule,
