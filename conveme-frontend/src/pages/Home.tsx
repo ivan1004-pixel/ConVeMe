@@ -1,198 +1,754 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-// Tus imágenes
 import mascotaImg from '../assets/mascota.jpg';
-import letrasImg from '../assets/logob.png';
+import letrasImg   from '../assets/logob.png';
+
+/* ── SVG Icons ── */
+const IconArrowRight = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+    </svg>
+);
+const IconZap = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+);
+const IconGrid = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+);
+const IconUsers = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+    </svg>
+);
+const IconTrendingUp = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+    <polyline points="17 6 23 6 23 12"/>
+    </svg>
+);
+
+// ── Carousel placeholder slot ──
+// Pon aquí las rutas a tus fotos reales cuando las tengas
+// Ejemplo: '/fotos/bazar1.jpg' o import foto1 from '../assets/fotos/bazar1.jpg'
+const CAROUSEL_IMAGES: string[] = [
+    '', // <- reemplaza con tu foto 1
+'', // <- reemplaza con tu foto 2
+'', // <- reemplaza con tu foto 3
+'', // <- reemplaza con tu foto 4
+'', // <- reemplaza con tu foto 5
+];
+
+const STATS = [
+    { icon: <IconGrid />,       num: 'ERP',   label: 'Sistema'    },
+{ icon: <IconUsers />,      num: '3',     label: 'Roles'      },
+{ icon: <IconTrendingUp />, num: 'v2.0',  label: 'Versión'    },
+];
 
 export default function Home() {
-    // Arreglo temporal de imágenes para tu carrusel.
-    // ¡Luego las puedes cambiar por fotos reales de los bazares o eventos de NoManches!
-    const carouselImages = [
-        "https://images.unsplash.com/photo-1555529771-835f59bfc50c?w=500&q=80",
-        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&q=80",
-        "https://images.unsplash.com/photo-1603792907191-89e55f70099a?w=500&q=80",
-        "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=500&q=80",
-        "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=500&q=80",
-    ];
+    const carouselRef = useRef<HTMLDivElement>(null);
+    const doubled = [...CAROUSEL_IMAGES, ...CAROUSEL_IMAGES];
 
     return (
         <>
         <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
 
+            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+            html, body, #root { width: 100%; height: 100%; }
+
+            /* ══ ROOT ══ */
             .home-root {
                 min-height: 100vh;
-                background-color: #ede0d1; /* Tu beige */
-                background-image: radial-gradient(#1a0060 1px, transparent 1px);
-                background-size: 30px 30px;
+                width: 100vw;
+                background: #ede9fe;
+                font-family: 'DM Sans', sans-serif;
                 display: flex;
                 flex-direction: column;
-                align-items: center;
-                justify-content: space-between;
-                font-family: 'Syne', sans-serif;
-                overflow: hidden;
+                overflow-x: hidden;
                 position: relative;
             }
 
-            /* ── CARRUSEL INFINITO ── */
-            .carousel-container {
-                width: 100vw;
-                overflow: hidden;
-                padding: 20px 0;
-                background: #0301ff; /* Tu azul eléctrico */
-                border-top: 6px solid #1a0060;
-                border-bottom: 6px solid #1a0060;
-                transform: rotate(-2deg) scale(1.05); /* Ligeramente chueco para estilo urbano */
-                margin-top: 40px;
+            /* Dot grid */
+            .home-root::before {
+                content: '';
+    position: fixed; inset: 0;
+    background-image: radial-gradient(circle, rgba(26,0,96,0.12) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+            }
+
+            /* ══ HEADER BAR ══ */
+            .home-header {
+                position: relative;
                 z-index: 10;
-            }
-
-            .carousel-track {
+                width: 100%;
                 display: flex;
-                gap: 20px;
-                width: max-content;
-                animation: scroll 25s linear infinite;
+                align-items: center;
+                justify-content: space-between;
+                padding: 24px 40px;
+                background: rgba(237,233,254,0.85);
+                backdrop-filter: blur(12px);
+                border-bottom: 2.5px solid rgba(26,0,96,0.1);
+            }
+            .home-logo img {
+                height: 44px;
+                width: auto;
+                filter: drop-shadow(3px 3px 0px rgba(26,0,96,0.9));
+            }
+            .home-nav {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .nav-pill {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: none;
+                border: 2px solid rgba(26,0,96,0.18);
+                border-radius: 10px;
+                padding: 8px 16px;
+                font-family: 'Syne', sans-serif;
+                font-weight: 700;
+                font-size: 11.5px;
+                letter-spacing: .06em;
+                text-transform: uppercase;
+                color: rgba(26,0,96,0.55);
+                text-decoration: none;
+                cursor: pointer;
+                transition: all .18s;
+            }
+            .nav-pill:hover {
+                background: rgba(26,0,96,0.06);
+                color: #1a0060;
+                border-color: rgba(26,0,96,0.3);
             }
 
-            .carousel-track:hover {
-                animation-play-state: paused; /* Se pausa si le ponen el mouse */
+            /* ══ HERO ══ */
+            .home-hero {
+                position: relative;
+                z-index: 1;
+                flex: 1;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0;
+                min-height: calc(100vh - 93px);
             }
 
-            @keyframes scroll {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); } /* Se mueve a la mitad exacta para ser infinito */
+            /* Left hero */
+            .hero-left {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 64px 56px 64px 64px;
+                overflow: hidden;
+            }
+            .hero-left::before {
+                content: '';
+    position: absolute;
+    top: -100px; left: -100px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(204,85,255,0.08);
+    border: 3px solid rgba(204,85,255,0.12);
+    pointer-events: none;
             }
 
-            .carousel-item {
-                width: 250px;
-                height: 180px;
-                border-radius: 20px;
-                border: 4px solid #fff;
-                box-shadow: 6px 6px 0px #1a0060;
-                object-fit: cover;
-                flex-shrink: 0;
-                background-color: #f88fea;
-            }
-
-            /* ── BOTONES BRUTALISTAS ── */
-            .btn-action {
+            .hero-eyebrow {
                 display: inline-flex;
                 align-items: center;
-                justify-content: center;
-                padding: 18px 36px;
-                font-size: 18px;
-                font-weight: 900;
+                gap: 8px;
+                background: #ffe144;
+                border: 2.5px solid #1a0060;
+                border-radius: 40px;
+                padding: 6px 16px;
+                font-family: 'Syne', sans-serif;
+                font-weight: 800;
+                font-size: 11px;
+                color: #1a0060;
+                letter-spacing: .1em;
                 text-transform: uppercase;
-                letter-spacing: 0.1em;
-                border: 4px solid #1a0060;
-                border-radius: 16px;
-                cursor: pointer;
+                box-shadow: 3px 3px 0px #1a0060;
+                width: fit-content;
+                margin-bottom: 28px;
+            }
+            .eyebrow-dot {
+                width: 8px; height: 8px;
+                border-radius: 50%;
+                background: #cc55ff;
+                border: 1.5px solid #1a0060;
+            }
+
+            .hero-title {
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: clamp(44px, 5.5vw, 80px);
+                color: #1a0060;
+                line-height: 0.95;
+                letter-spacing: -.02em;
+                margin-bottom: 24px;
+            }
+            .hero-title .accent {
+                color: #cc55ff;
+                display: block;
+                text-shadow: 4px 4px 0px rgba(26,0,96,0.15);
+            }
+            .hero-title .stroke {
+                -webkit-text-stroke: 3px #1a0060;
+                color: transparent;
+                display: block;
+            }
+
+            .hero-desc {
+                font-size: clamp(14px, 1.3vw, 17px);
+                font-weight: 400;
+                color: rgba(26,0,96,0.6);
+                line-height: 1.65;
+                max-width: 380px;
+                margin-bottom: 40px;
+            }
+
+            /* CTA buttons */
+            .hero-ctas {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                flex-wrap: wrap;
+            }
+            .btn-cta-primary {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                background: #1a0060;
+                color: #ffe144;
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: 14px;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                border: 2.5px solid #1a0060;
+                border-radius: 14px;
+                padding: 16px 28px;
                 text-decoration: none;
-                transition: transform 0.15s, box-shadow 0.15s;
+                box-shadow: 5px 5px 0px rgba(0,0,0,0.35);
+                transition: transform .12s, box-shadow .12s;
             }
-
-            .btn-primary {
-                background: #f88fea; /* Tu rosa */
-                color: #1a0060;
-                box-shadow: 6px 6px 0px #1a0060;
+            .btn-cta-primary:hover {
+                transform: translate(-2px,-2px);
+                box-shadow: 7px 7px 0px rgba(0,0,0,0.35);
             }
-            .btn-primary:hover {
-                transform: translate(-3px, -3px);
-                box-shadow: 9px 9px 0px #1a0060;
+            .btn-cta-primary:active {
+                transform: translate(3px,3px);
+                box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
             }
-            .btn-primary:active {
-                transform: translate(3px, 3px);
+            .btn-cta-secondary {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                background: #cc55ff;
+                color: #fff;
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: 14px;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                border: 2.5px solid #1a0060;
+                border-radius: 14px;
+                padding: 16px 28px;
+                text-decoration: none;
+                box-shadow: 5px 5px 0px #1a0060;
+                transition: transform .12s, box-shadow .12s;
+            }
+            .btn-cta-secondary:hover {
+                transform: translate(-2px,-2px);
+                box-shadow: 7px 7px 0px #1a0060;
+            }
+            .btn-cta-secondary:active {
+                transform: translate(3px,3px);
                 box-shadow: 2px 2px 0px #1a0060;
             }
 
-            .btn-secondary {
-                background: #ffe144; /* Amarillo para resaltar */
+            /* Stats row */
+            .hero-stats {
+                display: flex;
+                gap: 16px;
+                margin-top: 48px;
+                flex-wrap: wrap;
+            }
+            .stat-chip {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255,255,255,0.7);
+                border: 2px solid rgba(26,0,96,0.12);
+                border-radius: 12px;
+                padding: 10px 16px;
+                backdrop-filter: blur(8px);
+            }
+            .stat-chip-icon {
+                color: #cc55ff;
+                display: flex;
+            }
+            .stat-chip-num {
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: 16px;
                 color: #1a0060;
-                box-shadow: 6px 6px 0px #1a0060;
             }
-            .btn-secondary:hover {
-                transform: translate(-3px, -3px);
-                box-shadow: 9px 9px 0px #1a0060;
+            .stat-chip-label {
+                font-size: 11px;
+                font-weight: 600;
+                color: rgba(26,0,96,0.45);
+                text-transform: uppercase;
+                letter-spacing: .07em;
             }
-            .btn-secondary:active {
-                transform: translate(3px, 3px);
-                box-shadow: 2px 2px 0px #1a0060;
+
+            /* ══ RIGHT HERO ══ */
+            .hero-right {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #1a0060;
+                overflow: hidden;
+            }
+            .hero-right::before {
+                content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(204,85,255,0.2) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+    pointer-events: none;
+            }
+
+            /* Decorative blobs on right panel */
+            .hr-blob {
+                position: absolute;
+                border-radius: 50%;
+                pointer-events: none;
+            }
+            .hr-blob-1 { width: 360px; height: 360px; top: -80px; right: -80px; background: rgba(204,85,255,0.1); border: 4px solid rgba(204,85,255,0.15); }
+            .hr-blob-2 { width: 200px; height: 200px; bottom: 60px; left: -50px; background: rgba(255,225,68,0.07); border: 3px solid rgba(255,225,68,0.12); }
+
+            /* Mascot container */
+            .mascot-stage {
+                position: relative;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0;
+            }
+
+            /* Ring deco */
+            @keyframes hm-pulse {
+                0%   { transform: scale(1);   opacity:.6; }
+                100% { transform: scale(1.9); opacity:0; }
+            }
+            .mascot-ring-wrap {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .mascot-ring {
+                position: absolute;
+                inset: -16px;
+                border-radius: 50%;
+                border: 3px solid rgba(204,85,255,0.45);
+                animation: hm-pulse 2.6s ease-out infinite;
+                pointer-events: none;
+            }
+            .mascot-circle {
+                width: clamp(200px, 18vw, 280px);
+                height: clamp(200px, 18vw, 280px);
+                border-radius: 50%;
+                border: 5px solid #cc55ff;
+                overflow: hidden;
+                box-shadow: 10px 10px 0px rgba(0,0,0,0.4), 0 0 0 8px rgba(204,85,255,0.15);
+            }
+            .mascot-circle img {
+                width: 100%; height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            /* Floating badge */
+            .mascot-badge {
+                position: absolute;
+                bottom: -18px;
+                right: -24px;
+                background: #ffe144;
+                border: 3px solid #1a0060;
+                border-radius: 14px;
+                padding: 8px 18px;
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: 14px;
+                color: #1a0060;
+                box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
+                white-space: nowrap;
+            }
+            .mascot-badge-2 {
+                position: absolute;
+                top: -14px;
+                left: -20px;
+                background: #cc55ff;
+                border: 3px solid #1a0060;
+                border-radius: 14px;
+                padding: 7px 14px;
+                font-family: 'Syne', sans-serif;
+                font-weight: 900;
+                font-size: 12px;
+                color: #fff;
+                box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
+                white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            /* Floating cards */
+            .float-card {
+                position: absolute;
+                background: rgba(255,255,255,0.95);
+                border: 2.5px solid rgba(26,0,96,0.25);
+                border-radius: 14px;
+                padding: 12px 16px;
+                backdrop-filter: blur(10px);
+                box-shadow: 4px 4px 0px rgba(0,0,0,0.25);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 3;
+            }
+            .float-card-icon {
+                width: 36px; height: 36px;
+                border-radius: 10px;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0;
+            }
+            .float-card-text { display: flex; flex-direction: column; }
+            .float-card-label { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 12px; color: #1a0060; }
+            .float-card-sub   { font-size: 10px; font-weight: 500; color: rgba(26,0,96,0.5); }
+
+            .fcard-1 { top: 18%; left: 6%; }
+            .fcard-2 { bottom: 20%; right: 5%; }
+
+            @keyframes hm-float-a { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-12px)} }
+            @keyframes hm-float-b { 0%,100%{transform:translateY(0)}  50%{transform:translateY(10px)}  }
+            .fcard-1 { animation: hm-float-b 4s ease-in-out infinite; }
+            .fcard-2 { animation: hm-float-a 3.5s ease-in-out infinite 0.8s; }
+
+            /* ══ CAROUSEL STRIP ══ */
+            .carousel-strip {
+                position: relative;
+                z-index: 5;
+                width: 100%;
+                overflow: hidden;
+                background: #0301ff;
+                border-top: 4px solid #1a0060;
+                border-bottom: 4px solid #1a0060;
+                padding: 18px 0;
+                transform: rotate(-1.5deg) scaleX(1.04);
+            }
+            .carousel-track {
+                display: flex;
+                gap: 18px;
+                width: max-content;
+                animation: hm-scroll 30s linear infinite;
+            }
+            .carousel-track:hover { animation-play-state: paused; }
+            @keyframes hm-scroll {
+                0%   { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+            /* Placeholder slot when no image is provided */
+            .carousel-slot {
+                width: 220px;
+                height: 160px;
+                border-radius: 16px;
+                border: 3.5px solid rgba(255,255,255,0.5);
+                box-shadow: 5px 5px 0px rgba(0,0,0,0.35);
+                flex-shrink: 0;
+                overflow: hidden;
+                background: rgba(255,255,255,0.08);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .carousel-slot img {
+                width: 100%; height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+            .slot-empty {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                opacity: 0.4;
+            }
+            .slot-empty svg { color: #fff; }
+            .slot-empty span { font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; color: #fff; letter-spacing: .1em; text-transform: uppercase; }
+
+            /* ══ FOOTER BAND ══ */
+            .home-footer {
+                position: relative;
+                z-index: 4;
+                width: 100%;
+                padding: 22px 40px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(237,233,254,0.9);
+                border-top: 2px solid rgba(26,0,96,0.08);
+            }
+            .footer-copy {
+                font-family: 'Syne', sans-serif;
+                font-weight: 700;
+                font-size: 11px;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                color: rgba(26,0,96,0.35);
+            }
+            .footer-dots {
+                display: flex; gap: 6px;
+            }
+            .fdot {
+                width: 8px; height: 8px; border-radius: 50%;
+                border: 2px solid rgba(26,0,96,0.2);
+            }
+            .fdot.active { background: #cc55ff; border-color: #cc55ff; }
+
+            /* ══ RESPONSIVE ══ */
+            @media (max-width: 900px) {
+                .home-hero { grid-template-columns: 1fr; min-height: auto; }
+                .hero-right { min-height: 55vw; }
+                .hero-left { padding: 48px 28px; }
+                .fcard-1, .fcard-2 { display: none; }
+                .home-header { padding: 18px 24px; }
+                .home-footer { padding: 18px 24px; }
             }
             `}</style>
 
-            <div className="home-root pb-10">
+            <div className="home-root">
 
-            {/* === HEADER (Logo) === */}
-            <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, type: "spring" }}
-            className="w-full flex justify-center pt-10 px-4"
+            {/* ══ HEADER ══ */}
+            <motion.header
+            className="home-header"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22,1,0.36,1] }}
             >
-            <img
-            src={letrasImg}
-            alt="NoManches Mx"
-            className="h-16 object-contain drop-shadow-[4px_4px_0px_rgba(26,0,96,1)]"
-            />
+            <div className="home-logo">
+            <img src={letrasImg} alt="NoManches Mx" />
+            </div>
+            <nav className="home-nav">
+            <Link to="/login" className="nav-pill">
+            <IconArrowRight /> Iniciar sesión
+            </Link>
+            <Link to="/crear-usuario" className="nav-pill">
+            <IconZap /> Crear usuario
+            </Link>
+            </nav>
+            </motion.header>
+
+            {/* ══ HERO ══ */}
+            <section className="home-hero">
+
+            {/* Left */}
+            <motion.div
+            className="hero-left"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, ease: [0.22,1,0.36,1], delay: 0.1 }}
+            >
+            {/* Eyebrow */}
+            <motion.div
+            className="hero-eyebrow"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            >
+            <span className="eyebrow-dot" />
+            Sistema de Gestión
             </motion.div>
 
-            {/* === SECCIÓN CENTRAL (Mascota) === */}
-            <div className="flex-1 flex flex-col items-center justify-center mt-8 relative z-20">
-            <motion.div
-            animate={{ y: [0, -20, 0] }}
-            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-            className="relative"
+            {/* Title */}
+            <motion.h1
+            className="hero-title"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.42, duration: 0.6 }}
             >
-            {/* Círculo de fondo para la mascota */}
-            <div className="w-56 h-56 md:w-72 md:h-72 bg-[#cc55ff] border-[6px] border-[#1a0060] rounded-full flex items-center justify-center overflow-hidden shadow-[12px_12px_0px_#1a0060]">
-            <img
-            src={mascotaImg}
-            alt="Mascota"
-            className="w-full h-full object-cover"
-            />
-            </div>
-            {/* Badge Flotante */}
+            <span className="stroke">No</span>
+            <span className="accent">Manches</span>
+            <span style={{ display:'block', color:'#1a0060' }}>ERP</span>
+            </motion.h1>
+
+            {/* Desc */}
+            <motion.p
+            className="hero-desc"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55 }}
+            >
+            Gestiona ventas, inventario y usuarios desde un solo lugar. Rápido, visual y sin complicaciones.
+            </motion.p>
+
+            {/* CTAs */}
             <motion.div
+            className="hero-ctas"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.64 }}
+            >
+            <Link to="/login" className="btn-cta-primary">
+            <IconArrowRight /> Iniciar sesión
+            </Link>
+            <Link to="/crear-usuario" className="btn-cta-secondary">
+            <IconZap /> Crear usuario
+            </Link>
+            </motion.div>
+
+            {/* Stats */}
+            <motion.div
+            className="hero-stats"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.78 }}
+            >
+            {STATS.map((s, i) => (
+                <motion.div
+                key={i}
+                className="stat-chip"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.82 + i * 0.1, type: 'spring', stiffness: 200 }}
+                >
+                <span className="stat-chip-icon">{s.icon}</span>
+                <div>
+                <p className="stat-chip-num">{s.num}</p>
+                <p className="stat-chip-label">{s.label}</p>
+                </div>
+                </motion.div>
+            ))}
+            </motion.div>
+            </motion.div>
+
+            {/* Right */}
+            <motion.div
+            className="hero-right"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, ease: [0.22,1,0.36,1], delay: 0.1 }}
+            >
+            <div className="hr-blob hr-blob-1" />
+            <div className="hr-blob hr-blob-2" />
+
+            {/* Floating info cards */}
+            <div className="float-card fcard-1">
+            <div className="float-card-icon" style={{ background:'rgba(204,85,255,0.15)' }}>
+            <IconUsers />
+            </div>
+            <div className="float-card-text">
+            <span className="float-card-label">Usuarios</span>
+            <span className="float-card-sub">Control de roles</span>
+            </div>
+            </div>
+            <div className="float-card fcard-2">
+            <div className="float-card-icon" style={{ background:'rgba(255,225,68,0.2)' }}>
+            <IconTrendingUp />
+            </div>
+            <div className="float-card-text">
+            <span className="float-card-label">Ventas</span>
+            <span className="float-card-sub">Tiempo real</span>
+            </div>
+            </div>
+
+            {/* Mascot */}
+            <div className="mascot-stage">
+            <div className="mascot-ring-wrap">
+            <div className="mascot-ring" />
+            <motion.div
+            animate={{ y: [0, -14, 0] }}
+            transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+            >
+            <div className="mascot-circle">
+            <img src={mascotaImg} alt="Mascota NoManches" />
+            </div>
+            </motion.div>
+
+            {/* Badges */}
+            <motion.div
+            className="mascot-badge"
+            initial={{ scale: 0, rotate: -10 }}
+            animate={{ scale: 1, rotate: 8 }}
+            transition={{ delay: 0.6, type: 'spring', stiffness: 240, damping: 14 }}
+            >
+            ERP v2.0
+            </motion.div>
+            <motion.div
+            className="mascot-badge-2"
             initial={{ scale: 0 }}
-            animate={{ scale: 1, rotate: 12 }}
-            transition={{ delay: 0.5, type: "spring" }}
-            className="absolute -bottom-6 -right-6 bg-[#ffe144] border-4 border-[#1a0060] px-6 py-2 rounded-xl shadow-[4px_4px_0px_#1a0060]"
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.75, type: 'spring', stiffness: 220, damping: 15 }}
             >
-            <span className="font-black text-xl text-[#1a0060]">ERP v2.0</span>
-            </motion.div>
+            <IconZap /> NoManches!
             </motion.div>
             </div>
+            </div>
+            </motion.div>
 
-            {/* === CARRUSEL INFINITO DE IMÁGENES === */}
-            <div className="carousel-container shadow-2xl">
-            <div className="carousel-track">
-            {/* Renderizamos las imágenes dos veces para que el ciclo sea infinito sin cortes */}
-            {[...carouselImages, ...carouselImages].map((src, index) => (
-                <img
-                key={index}
-                src={src}
-                alt={`Evento NoManches ${index}`}
-                className="carousel-item"
-                />
+            </section>
+
+            {/* ══ CAROUSEL ══ */}
+            <motion.div
+            className="carousel-strip"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+            >
+            <div className="carousel-track" ref={carouselRef}>
+            {doubled.map((src, i) => (
+                <div key={i} className="carousel-slot">
+                {src ? (
+                    <img src={src} alt={`Evento NoManches ${i}`} />
+                ) : (
+                    <div className="slot-empty">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <span>Tu foto aquí</span>
+                    </div>
+                )}
+                </div>
             ))}
             </div>
-            </div>
-
-            {/* === BOTONES DE ACCIÓN === */}
-            <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-6 mt-16 px-4 z-20"
-            >
-            <Link to="/login" className="btn-primary">
-            👉 Iniciar Sesión
-            </Link>
-            <Link to="/crear-usuario" className="btn-secondary">
-            ⚡ Crear Usuario
-            </Link>
             </motion.div>
+
+            {/* ══ FOOTER ══ */}
+            <footer className="home-footer">
+            <span className="footer-copy">© 2026 NoManches Mx</span>
+            <div className="footer-dots">
+            <span className="fdot active" />
+            <span className="fdot" />
+            <span className="fdot" />
+            </div>
+            </footer>
 
             </div>
             </>

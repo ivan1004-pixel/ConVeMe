@@ -17,6 +17,7 @@ export default function Login() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // ESTO LLAMA A LA LÓGICA REAL DEL HOOK
         const fueExitoso = await iniciarSesion(username, password);
         if (fueExitoso) {
             setTimeout(() => navigate('/dashboard'), 2000);
@@ -238,6 +239,34 @@ export default function Login() {
                 gap: 0;
             }
 
+            /* Back button */
+            .btn-back {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: rgba(26,0,96,0.45);
+                font-family: 'DM Sans', sans-serif;
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: .04em;
+                padding: 0;
+                margin-bottom: 32px;
+                transition: color .18s, transform .18s;
+            }
+            .btn-back:hover {
+                color: #cc55ff;
+                transform: translateX(-3px);
+            }
+            .btn-back svg {
+                transition: transform .18s;
+            }
+            .btn-back:hover svg {
+                transform: translateX(-2px);
+            }
+
             .form-eyebrow {
                 font-family: 'Syne', sans-serif;
                 font-weight: 700;
@@ -245,24 +274,25 @@ export default function Login() {
                 letter-spacing: .14em;
                 text-transform: uppercase;
                 color: #cc55ff;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
             }
 
             .form-title {
                 font-family: 'Syne', sans-serif;
                 font-weight: 900;
-                font-size: clamp(26px, 3vw, 38px);
+                font-size: clamp(28px, 3vw, 42px);
                 color: #1a0060;
                 line-height: 1.05;
-                margin-bottom: 6px;
+                margin-bottom: 14px;
             }
 
             .form-subtitle {
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: 400;
                 color: rgba(26,0,96,0.55);
-                margin-bottom: 32px;
-                line-height: 1.5;
+                margin-bottom: 22px;
+                line-height: 1.6;
+                max-width: 320px;
             }
 
             /* Divider */
@@ -271,7 +301,7 @@ export default function Login() {
                 height: 4px;
                 background: #cc55ff;
                 border-radius: 4px;
-                margin-bottom: 28px;
+                margin-bottom: 36px;
             }
 
             /* Fields */
@@ -323,13 +353,18 @@ export default function Login() {
                 background: none;
                 border: none;
                 cursor: pointer;
-                font-size: 16px;
-                line-height: 1;
-                padding: 2px;
-                color: #9b59c4;
-                transition: opacity .15s;
+                padding: 4px;
+                color: #b39dcc;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                transition: color .18s, background .18s;
             }
-            .pass-toggle:hover { opacity: .7; }
+            .pass-toggle:hover {
+                color: #7c22cc;
+                background: rgba(204,85,255,0.1);
+            }
 
             .forgot-link {
                 text-align: right;
@@ -553,6 +588,21 @@ export default function Login() {
             <div className="corner-accent-br" />
 
             <div className="form-card">
+            {/* Back button */}
+            <motion.button
+            type="button"
+            className="btn-back"
+            onClick={() => navigate(-1)}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Regresar
+            </motion.button>
+
             <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -613,7 +663,20 @@ export default function Login() {
             tabIndex={-1}
             aria-label="Mostrar contraseña"
             >
-            {showPass ? '🙈' : '👁️'}
+            {showPass ? (
+                /* Eye-off icon */
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+            ) : (
+                /* Eye icon */
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+                </svg>
+            )}
             </button>
             </div>
             </div>
@@ -631,7 +694,7 @@ export default function Login() {
             {loading ? (
                 <><span className="spinner">⚙️</span> Verificando...</>
             ) : exito ? (
-                <>✅ ¡Listo!</>
+                <> ¡Listo!</>
             ) : (
                 <>Entrar →</>
             )}

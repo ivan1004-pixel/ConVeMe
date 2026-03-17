@@ -2,28 +2,26 @@ import { convemeApi } from '../api/convemeApi';
 import type { LoginResponse } from '../interfaces/auth.interface';
 
 export const loginService = async (username: string, password_raw: string) => {
-  // Nota: Usamos password_raw o password según lo que pida tu backend para el Login
-  const query = `
-    mutation Login($username: String!, $password: String!) {
-      login(username: $username, password: $password) {
-        access_token
-        usuario {
-          id_usuario
-          rol
+    const query = `
+    mutation Login($username: String!, $password_raw: String!) {
+        login(loginInput: { username: $username, password_raw: $password_raw }) {
+            token
+            usuario {
+                id_usuario
+                rol_id # Nota: en tu BD se llama rol_id, asegurate de pedirlo así si "rol" falla
+            }
         }
-      }
     }
-  `;
+    `;
 
-  const { data } = await convemeApi.post<LoginResponse>('', {
-    query,
-    variables: { username, password: password_raw },
-  });
+    const { data } = await convemeApi.post<LoginResponse>('', {
+        query,
+        variables: { username, password_raw },
+    });
 
-  // Si GraphQL nos devuelve un error (ej. contraseña incorrecta)
-  if (data.errors) {
-    throw new Error(data.errors[0].message);
-  }
+    if (data.errors) {
+        throw new Error(data.errors[0].message);
+    }
 
-  return data.data.login;
+    return data.data.login;
 };
