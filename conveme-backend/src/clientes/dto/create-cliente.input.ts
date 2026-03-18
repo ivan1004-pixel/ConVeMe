@@ -17,5 +17,4 @@ export class CreateClienteInput {
   @Field({ nullable: true })
   direccion_envio?: string;
 
-  
 }

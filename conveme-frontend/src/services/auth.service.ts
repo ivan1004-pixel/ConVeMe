@@ -9,6 +9,7 @@ export const loginService = async (username: string, password_raw: string) => {
             usuario {
                 id_usuario
                 rol_id
+                username
             }
         }
     }
