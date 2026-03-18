@@ -16,18 +16,11 @@ export const useUser = () => {
             setExito(true);
             return true;
         } catch (err: any) {
-            // Si es un error de Axios (ej. 400 Bad Request)
-            if (err.response && err.response.data && err.response.data.errors) {
-                alert("⚠️ EL BACKEND DICE:\n" + err.response.data.errors[0].message);
+            if (err.response?.data?.errors) {
+                alert(" EL BACKEND DICE:\n" + err.response.data.errors[0].message);
+            } else if (err.message) {
+                alert(" EL BACKEND DICE:\n" + err.message);
             }
-            // Si es el error que nosotros lanzamos manualmente en el servicio
-            else if (err.message) {
-                alert("⚠️ EL BACKEND DICE:\n" + err.message);
-            }
-            else {
-                console.error("Fallo al contactar al backend:", err);
-            }
-
             setError('Error al crear el usuario. Revisa la consola.');
             return false;
         } finally {

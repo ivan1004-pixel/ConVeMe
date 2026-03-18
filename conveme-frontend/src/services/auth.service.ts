@@ -8,7 +8,7 @@ export const loginService = async (username: string, password_raw: string) => {
             token
             usuario {
                 id_usuario
-                rol_id # Nota: en tu BD se llama rol_id, asegurate de pedirlo así si "rol" falla
+                rol_id
             }
         }
     }
@@ -19,9 +19,6 @@ export const loginService = async (username: string, password_raw: string) => {
         variables: { username, password_raw },
     });
 
-    if (data.errors) {
-        throw new Error(data.errors[0].message);
-    }
-
+    if (data.errors) throw new Error(data.errors[0].message);
     return data.data.login;
 };

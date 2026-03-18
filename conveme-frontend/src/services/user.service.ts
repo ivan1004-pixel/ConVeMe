@@ -19,11 +19,6 @@ export const createUserService = async (username: string, password_raw: string, 
         variables: { username, password_raw, rol_id },
     });
 
-    // 👇 EL BLINDAJE ANTI-ERRORES DISFRAZADOS 👇
-    if (data.errors) {
-        console.error("GraphQL Errors:", data.errors);
-        throw new Error(data.errors[0].message);
-    }
-
+    if (data.errors) throw new Error(data.errors[0].message);
     return data.data.createUsuario;
 };

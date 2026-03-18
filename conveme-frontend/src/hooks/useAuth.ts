@@ -11,22 +11,18 @@ export const useAuth = () => {
         setError(null);
 
         try {
-
             const response = await loginService(username, password_raw);
-
-
             localStorage.setItem('token', response.token);
-
+            localStorage.setItem('rol_id', response.usuario.rol_id.toString());
             setExito(true);
             return true;
-
         } catch (err: any) {
-            if (err.response && err.response.data && err.response.data.errors) {
+            if (err.response?.data?.errors) {
                 setError(err.response.data.errors[0].message);
             } else if (err.message) {
                 setError(err.message);
             } else {
-                setError('Credenciales incorrectas o error de conexión');
+                setError('Credenciales incorrectas');
             }
             return false;
         } finally {

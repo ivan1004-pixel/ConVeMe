@@ -1,14 +1,24 @@
-// SOLUCIÓN TS2552: Agregamos 'Int' en esta primera línea
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { Usuario } from './usuario.entity';
 import { CreateUsuarioInput } from './dto/create-usuario.input';
 import { UpdateUsuarioInput } from './dto/update-usuario.input';
 
+// 👇 YA PODEMOS IMPORTARLOS PORQUE YA EXISTEN
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+
 @Resolver(() => Usuario)
 export class UsuariosResolver {
     constructor(private readonly usuariosService: UsuariosService) {}
 
+    // 👇 ACTIVAMOS EL MURO DE CONCRETO
+    // Pedimos Token y revisamos roles.
+    // Usamos el número 1 porque es el ID del Administrador en tu BD
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(1)
     @Mutation(() => Usuario)
     createUsuario(@Args('createUsuarioInput') createUsuarioInput: CreateUsuarioInput) {
         return this.usuariosService.create(createUsuarioInput);
