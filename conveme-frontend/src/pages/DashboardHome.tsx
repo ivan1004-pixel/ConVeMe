@@ -9,19 +9,19 @@ export default function DashboardHome() {
     const cards = [
         {
             show:    rolId === 1,
-            to:      '/crear-usuario',
+            to:      '/catalogos', // <-- Actualizado a la nueva ruta
             bg:      '#cc55ff',
             accent:  '#1a0060',
             textCol: '#fff',
             subCol:  'rgba(255,255,255,0.75)',
             icon:    <Users size={28} />,
-            label:   'Usuarios',
-            title:   'Gestión de Usuarios',
-            sub:     'Crea y administra accesos al sistema',
-            tag:     'Admin',
+            label:   'Administración',
+            title:   'Añadir (Catálogos)', // <-- Actualizado según tu petición
+            sub:     'Escuelas, Empleados, Cuentas Bancarias, Eventos, Vendedores', // <-- Actualizado
+            tag:     'Gestión',
             tagBg:   'rgba(255,255,255,0.22)',
             tagCol:  '#fff',
-            stat:    '3 Roles',
+            stat:    '5 Entidades',
             statIcon:<Star size={12} />,
         },
         {
@@ -309,7 +309,7 @@ export default function DashboardHome() {
 
             <div className="dh-root">
 
-            {/* Greeting */}
+            {/* Greeting - Ya incluido como pediste */}
             <UserGreeting />
 
             {/* Info strip */}

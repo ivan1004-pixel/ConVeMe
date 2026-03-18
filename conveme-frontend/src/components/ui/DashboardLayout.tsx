@@ -40,7 +40,7 @@ export default function DashboardLayout() {
         { nombre: 'Inventario',      path: '/inventario',     icono: <Package     size={18} />, roles: [1,3],   section: 'Logística'  },
         { nombre: 'Producción',      path: '/produccion',     icono: <Scissors    size={18} />, roles: [1,3],   section: 'Logística'  },
         { nombre: 'Finanzas',        path: '/finanzas',       icono: <TrendingUp  size={18} />, roles: [1],     section: 'Admin'      },
-        { nombre: 'Usuarios',        path: '/crear-usuario',  icono: <Settings    size={18} />, roles: [1],     section: 'Admin'      },
+        { nombre: 'Catálogos',        path: '/crear-usuario',  icono: <Settings    size={18} />, roles: [1],     section: 'Admin'      },
     ];
 
     const menuFiltrado = menuItems.filter(item => item.roles.includes(rolId));

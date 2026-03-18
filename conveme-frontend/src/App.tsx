@@ -1,13 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-
-// Importamos todas tus pantallas
 import Home from './pages/Home';
 import Login from './pages/Login';
 import CreateUser from './pages/CreateUser';
 import DashboardHome from './pages/DashboardHome';
 import Profile from './pages/Profile';
-
-// Importamos los cascarones (Layout y Seguridad)
+import Catalogos from './pages/Catalogos';
 import { AdminRoute } from './components/ProtectedRoute';
 import DashboardLayout from './components/ui/DashboardLayout';
 
@@ -29,6 +26,7 @@ function App() {
 
     {/* Si escribes una URL rara, te regresa al inicio */}
     <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    <Route path="/catalogos" element={<Catalogos />} />
 
     </Route>
     </Route>
