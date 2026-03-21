@@ -125,7 +125,7 @@ export default function DashboardLayout() {
                 min-width: 0;
             }
             .dl-sb-logo img {
-                height: 36px;
+                height: 23px;
                 width: auto;
                 flex-shrink: 0;
                 filter: brightness(10);

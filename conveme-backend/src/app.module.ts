@@ -42,14 +42,14 @@ import { BitacoraAuditoriaModule } from './bitacora-auditoria/bitacora-auditoria
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       playground: true,
     }),
-    // Configuración de TypeORM para conectarse a MariaDB/MySQL
+
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'root',  // Tu usuario de BD
-      password: '12345',      // Tu contraseña de BD
-      database: 'conveme_bd', // El nombre de la base de datos
+      username: 'root',
+      password: '12345',
+      database: 'conveme_bd',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
