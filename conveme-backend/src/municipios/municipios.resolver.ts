@@ -23,6 +23,11 @@ export class MunicipiosResolver {
         return this.municipiosService.findOne(id_municipio);
     }
 
+    @Query(() => [Municipio], { name: 'municipiosPorEstado' })
+    findByEstado(@Args('estado_id', { type: () => Int }) estado_id: number) {
+        return this.municipiosService.findByEstadoId(estado_id);
+    }
+
     @Mutation(() => Municipio)
     updateMunicipio(@Args('updateMunicipioInput') updateMunicipioInput: UpdateMunicipioInput) {
         return this.municipiosService.update(updateMunicipioInput.id_municipio, updateMunicipioInput);

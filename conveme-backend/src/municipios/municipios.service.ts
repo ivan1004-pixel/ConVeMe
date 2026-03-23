@@ -45,4 +45,10 @@ export class MunicipiosService {
         const resultado = await this.municipioRepository.delete(id_municipio);
         return (resultado.affected ?? 0) > 0;
     }
+
+    async findByEstadoId(estado_id: number): Promise<Municipio[]> {
+        return this.municipioRepository.find({
+            where: { estado_id: estado_id } // Esto busca todos los de Toluca, Lerma, etc.
+        });
+    }
 }

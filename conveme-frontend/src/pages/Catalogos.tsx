@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserGreeting from '../components/ui/UserGreeting';
-import ModalEscuela from '../components/catalogos/ModalEscuela'; // 👈 Importamos tu Modal
+import ModalEscuela from '../components/catalogos/ModalEscuela';
+import { getEscuelas, createEscuela } from '../services/escuela.service';
 import {
     Plus, ChevronDown, School, Users, UserCheck,
     CreditCard, Calendar, ChevronRight
@@ -65,17 +66,43 @@ export default function Catalogos() {
     // 👇 Estado para controlar el Modal de Escuelas
     const [isModalEscuelaOpen, setIsModalEscuelaOpen] = useState(false);
 
+    const [datosEscuelas, setDatosEscuelas] = useState<any[]>([]);
+    const [loadingDatos, setLoadingDatos] = useState(false);
+
     const dropRef = useRef<HTMLDivElement>(null);
 
     const tabActual = TABS.find(t => t.id === tabActiva)!;
     const columnas  = COLUMNAS[tabActiva] ?? [];
 
-    // 👇 Función temporal para guardar (Simula el Axios)
-    const handleGuardarEscuela = async (data: any) => {
-        console.log("Datos de la escuela:", data);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        alert(`¡${data.nombre} guardada exitosamente! (Simulado)`);
+    // 👇 TODA LA LÓGICA DEBE IR AQUÍ ARRIBA, ANTES DEL RETURN 👇
+    useEffect(() => {
+        if (tabActiva === 'escuelas') {
+            cargarEscuelas();
+        }
+    }, [tabActiva]);
+
+    const cargarEscuelas = async () => {
+        setLoadingDatos(true);
+        try {
+            const data = await getEscuelas();
+            setDatosEscuelas(data);
+        } catch (error) {
+            console.error("Error cargando escuelas:", error);
+        } finally {
+            setLoadingDatos(false);
+        }
     };
+
+    const handleGuardarEscuela = async (data: any) => {
+        try {
+            await createEscuela(data);
+            await cargarEscuelas(); // Recarga la tabla para mostrar la nueva
+        } catch (error: any) {
+            alert(error.message || "Error al crear la escuela");
+            throw error; // Lanza el error para que el Modal no se cierre
+        }
+    };
+    // 👆 HASTA AQUÍ TERMINA LA LÓGICA 👆
 
     return (
         <>
@@ -119,7 +146,7 @@ export default function Catalogos() {
                 onClick={() => {
                     setTabActiva(tab.id);
                     setAddOpen(false);
-                    // 👇 LÓGICA MÁGICA: Si escoge escuelas, abre el modal
+                    // LÓGICA MÁGICA: Si escoge escuelas, abre el modal
                     if (tab.id === 'escuelas') {
                         setIsModalEscuelaOpen(true);
                     } else {
@@ -201,7 +228,10 @@ export default function Catalogos() {
         <span className="cat-card-title-icon">{tabActual.icon}</span>
         {tabActual.label}
         </div>
-        <span className="cat-count-badge">0 registros</span>
+        {/* Aquí puedes hacer que el contador sea real sumando datosEscuelas.length */}
+        <span className="cat-count-badge">
+        {tabActiva === 'escuelas' ? datosEscuelas.length : 0} registros
+        </span>
         </div>
 
         {/* Table with horizontal scroll */}
@@ -216,18 +246,33 @@ export default function Catalogos() {
         </tr>
         </thead>
         <tbody>
-        <tr>
-        <td colSpan={columnas.length + 1} style={{ padding:0, border:'none' }}>
-        <div className="cat-empty">
-        <div className="cat-empty-icon">{tabActual.icon}</div>
-        <p className="cat-empty-title">Sin registros aún</p>
-        <p className="cat-empty-sub">
-        No hay {tabActual.label.toLowerCase()} cargados. Usa el botón
-        "Añadir registro" para crear el primero.
-        </p>
-        </div>
-        </td>
-        </tr>
+        {loadingDatos ? (
+            <tr><td colSpan={columnas.length + 1} className="p-8 text-center font-bold text-[#1a0060]">Cargando datos...</td></tr>
+        ) : tabActiva === 'escuelas' && datosEscuelas.length > 0 ? (
+            datosEscuelas.map((escuela) => (
+                <tr key={escuela.id_escuela}>
+                <td>#{escuela.id_escuela}</td>
+                <td className="font-bold text-[#1a0060]">{escuela.nombre}</td>
+                <td>{escuela.siglas}</td>
+                <td>{escuela.municipio?.nombre || 'N/A'}</td>
+                <td>{escuela.municipio?.estado?.nombre || 'N/A'}</td>
+                <td className="cat-actions">
+                <button className="cat-action-btn" title="Editar">✏️</button>
+                <button className="cat-action-btn danger" title="Desactivar">🗑️</button>
+                </td>
+                </tr>
+            ))
+        ) : (
+            <tr>
+            <td colSpan={columnas.length + 1} style={{ padding:0, border:'none' }}>
+            <div className="cat-empty">
+            <div className="cat-empty-icon">{tabActual.icon}</div>
+            <p className="cat-empty-title">Sin registros aún</p>
+            <p className="cat-empty-sub">Usa el botón "Añadir registro" para crear el primero.</p>
+            </div>
+            </td>
+            </tr>
+        )}
         </tbody>
         </table>
         </div>

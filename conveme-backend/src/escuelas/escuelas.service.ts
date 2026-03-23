@@ -16,7 +16,6 @@ export class EscuelasService {
         const nuevaEscuela = this.escuelaRepository.create(createEscuelaInput);
         const guardada = await this.escuelaRepository.save(nuevaEscuela);
 
-        // LA MAGIA: Retornamos con todo el árbol geográfico
         return this.findOne(guardada.id_escuela);
     }
 

@@ -378,6 +378,7 @@ type Query {
   estado(id_estado: Int!): Estado!
   municipios: [Municipio!]!
   municipio(id_municipio: Int!): Municipio!
+  municipiosPorEstado(estado_id: Int!): [Municipio!]!
   roles: [Rol!]!
   rol(id_rol: Int!): Rol!
   escuelas: [Escuela!]!
