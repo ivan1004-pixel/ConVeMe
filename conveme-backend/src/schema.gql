@@ -450,7 +450,7 @@ type Mutation {
   removeRol(id_rol: Int!): Boolean!
   createEscuela(createEscuelaInput: CreateEscuelaInput!): Escuela!
   updateEscuela(updateEscuelaInput: UpdateEscuelaInput!): Escuela!
-  removeEscuela(id_escuela: Int!): Boolean!
+  removeEscuela(id_escuela: Int!): Escuela!
   createEmpleado(createEmpleadoInput: CreateEmpleadoInput!): Empleado!
   updateEmpleado(updateEmpleadoInput: UpdateEmpleadoInput!): Empleado!
   removeEmpleado(id_empleado: Int!): Boolean!

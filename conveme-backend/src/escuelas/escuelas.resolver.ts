@@ -28,7 +28,8 @@ export class EscuelasResolver {
         return this.escuelasService.update(updateEscuelaInput.id_escuela, updateEscuelaInput);
     }
 
-    @Mutation(() => Boolean)
+    // 👇 AQUÍ ESTÁ LA MAGIA. Cambiamos Boolean por Escuela
+    @Mutation(() => Escuela)
     removeEscuela(@Args('id_escuela', { type: () => Int }) id_escuela: number) {
         return this.escuelasService.remove(id_escuela);
     }

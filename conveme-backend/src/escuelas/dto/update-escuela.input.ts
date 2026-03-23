@@ -3,10 +3,11 @@ import { CreateEscuelaInput } from './create-escuela.input';
 
 @InputType()
 export class UpdateEscuelaInput extends PartialType(CreateEscuelaInput) {
+    // 1. El ID es obligatorio para saber a quién vamos a actualizar
     @Field(() => Int)
     id_escuela: number;
 
-    // Aquí sí permitimos enviar "activa" por si queremos dar de baja una escuela
+    // 2. Aquí va el campo activa que te estaba marcando error
     @Field({ nullable: true })
     activa?: boolean;
 }

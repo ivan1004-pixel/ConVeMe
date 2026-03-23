@@ -35,15 +35,17 @@ export class EscuelasService {
     }
 
     async update(id_escuela: number, updateEscuelaInput: UpdateEscuelaInput): Promise<Escuela> {
-        const escuela = await this.findOne(id_escuela);
-        Object.assign(escuela, updateEscuelaInput);
-        await this.escuelaRepository.save(escuela);
+        // 👇 Como updateEscuelaInput ya trae el ID, se lo pasamos directo a preload
+        const escuela = await this.escuelaRepository.preload(updateEscuelaInput);
 
+        if (!escuela) throw new NotFoundException(`Escuela #${id_escuela} no encontrada`);
+
+        await this.escuelaRepository.save(escuela);
         return this.findOne(id_escuela);
     }
-
-    async remove(id_escuela: number): Promise<boolean> {
-        const resultado = await this.escuelaRepository.delete(id_escuela);
-        return (resultado.affected ?? 0) > 0;
+    async remove(id_escuela: number): Promise<Escuela> {
+        const escuelaABorrar = await this.findOne(id_escuela); // La buscamos antes de borrarla
+        await this.escuelaRepository.delete(id_escuela);
+        return escuelaABorrar; // Devolvemos los datos de la que acabamos de borrar
     }
 }

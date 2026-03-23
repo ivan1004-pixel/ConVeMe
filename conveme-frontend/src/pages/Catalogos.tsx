@@ -2,92 +2,132 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserGreeting from '../components/ui/UserGreeting';
 import ModalEscuela from '../components/catalogos/ModalEscuela';
-import { getEscuelas, createEscuela } from '../services/escuela.service';
+import { getEscuelas, createEscuela, updateEscuela, deleteEscuela } from '../services/escuela.service';
 import {
     Plus, ChevronDown, School, Users, UserCheck,
-    CreditCard, Calendar, ChevronRight
+    CreditCard, Calendar, ChevronRight,
+    Pencil, Trash2, Search, X, CheckCircle,
+    ArrowUpDown, Loader2
 } from 'lucide-react';
 
-// Importamos el archivo de estilos limpio
 import '../styles/Catalogos.css';
 
 /* ── Tab config ── */
 const TABS = [
-    { id: 'escuelas',  label: 'Escuelas',          icon: <School     size={16} /> },
-{ id: 'empleados', label: 'Empleados',         icon: <Users      size={16} /> },
-{ id: 'vendedores',label: 'Vendedores',        icon: <UserCheck  size={16} /> },
-{ id: 'cuentas',   label: 'Cuentas Bancarias', icon: <CreditCard size={16} /> },
-{ id: 'eventos',   label: 'Eventos',           icon: <Calendar   size={16} /> },
+    { id: 'escuelas',   label: 'Escuelas',          icon: <School     size={16} /> },
+{ id: 'empleados',  label: 'Empleados',          icon: <Users      size={16} /> },
+{ id: 'vendedores', label: 'Vendedores',         icon: <UserCheck  size={16} /> },
+{ id: 'cuentas',    label: 'Cuentas Bancarias',  icon: <CreditCard size={16} /> },
+{ id: 'eventos',    label: 'Eventos',             icon: <Calendar   size={16} /> },
 ];
 
-const COLUMNAS: Record<string, { key: string; label: string }[]> = {
-    escuelas:  [
-        { key: 'id',        label: 'ID'       },
-        { key: 'nombre',    label: 'Nombre'   },
-        { key: 'siglas',    label: 'Siglas'   },
-        { key: 'municipio', label: 'Municipio'},
-        { key: 'estado',    label: 'Estado'   },
+const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean }[]> = {
+    escuelas: [
+        { key: 'id_escuela', label: 'ID'        },
+        { key: 'nombre',     label: 'Nombre',    sortable: true },
+        { key: 'siglas',     label: 'Siglas'    },
+        { key: 'municipio',  label: 'Municipio', sortable: true },
+        { key: 'estado',     label: 'Estado',    sortable: true },
     ],
     empleados: [
-        { key: 'id',       label: 'ID'             },
-        { key: 'nombre',   label: 'Nombre Completo'},
-        { key: 'puesto',   label: 'Puesto'         },
-        { key: 'telefono', label: 'Teléfono'       },
-        { key: 'email',    label: 'Email'          },
+        { key: 'id',       label: 'ID'               },
+        { key: 'nombre',   label: 'Nombre Completo',  sortable: true },
+        { key: 'puesto',   label: 'Puesto',           sortable: true },
+        { key: 'telefono', label: 'Teléfono'          },
+        { key: 'email',    label: 'Email'             },
     ],
     vendedores: [
-        { key: 'id',       label: 'ID'               },
-        { key: 'nombre',   label: 'Nombre Completo'  },
-        { key: 'escuela',  label: 'Escuela Asignada' },
-        { key: 'instagram',label: 'Instagram'        },
-        { key: 'comisiones',label:'Comisiones'       },
+        { key: 'id',         label: 'ID'                },
+        { key: 'nombre',     label: 'Nombre Completo',  sortable: true },
+        { key: 'escuela',    label: 'Escuela Asignada', sortable: true },
+        { key: 'instagram',  label: 'Instagram'         },
+        { key: 'comisiones', label: 'Comisiones',       sortable: true },
     ],
     cuentas: [
         { key: 'id',       label: 'ID'       },
-        { key: 'vendedor', label: 'Vendedor' },
-        { key: 'banco',    label: 'Banco'    },
+        { key: 'vendedor', label: 'Vendedor', sortable: true },
+        { key: 'banco',    label: 'Banco',    sortable: true },
         { key: 'titular',  label: 'Titular'  },
         { key: 'clabe',    label: 'CLABE'    },
     ],
     eventos: [
-        { key: 'id',      label: 'ID'           },
-        { key: 'nombre',  label: 'Nombre Evento'},
-        { key: 'fechas',  label: 'Fechas'       },
-        { key: 'escuela', label: 'Escuela Sede' },
-        { key: 'estado',  label: 'Estado'       },
+        { key: 'id',      label: 'ID'            },
+        { key: 'nombre',  label: 'Nombre Evento', sortable: true },
+        { key: 'fechas',  label: 'Fechas'         },
+        { key: 'escuela', label: 'Escuela Sede',  sortable: true },
+        { key: 'estado',  label: 'Estado',        sortable: true },
     ],
 };
 
+interface Toast { msg: string; type: 'success' | 'delete' | 'error' }
+
 export default function Catalogos() {
-    const [tabActiva, setTabActiva]     = useState('escuelas');
-    const [dropOpen,  setDropOpen]      = useState(false);
-    const [addOpen,   setAddOpen]       = useState(false);
+    const [tabActiva, setTabActiva] = useState('escuelas');
+    const [dropOpen,  setDropOpen]  = useState(false);
+    const [addOpen,   setAddOpen]   = useState(false);
 
-    // 👇 Estado para controlar el Modal de Escuelas
+    // Modal escuela
     const [isModalEscuelaOpen, setIsModalEscuelaOpen] = useState(false);
+    const [escuelaEditando,    setEscuelaEditando]    = useState<any | null>(null);
 
+    // Data
     const [datosEscuelas, setDatosEscuelas] = useState<any[]>([]);
-    const [loadingDatos, setLoadingDatos] = useState(false);
+    const [loadingDatos,  setLoadingDatos]  = useState(false);
 
-    const dropRef = useRef<HTMLDivElement>(null);
+    // Search & sort
+    const [search,  setSearch]  = useState('');
+    const [sortKey, setSortKey] = useState<string | null>(null);
+    const [sortAsc, setSortAsc] = useState(true);
 
-    const tabActual = TABS.find(t => t.id === tabActiva)!;
-    const columnas  = COLUMNAS[tabActiva] ?? [];
+    // Toast
+    const [toast, setToast] = useState<Toast | null>(null);
 
-    // 👇 TODA LA LÓGICA DEBE IR AQUÍ ARRIBA, ANTES DEL RETURN 👇
+    // Refs for outside-click
+    const selectorRef = useRef<HTMLDivElement>(null);
+    const addRef      = useRef<HTMLDivElement>(null);
+
+    const tabActual  = TABS.find(t => t.id === tabActiva)!;
+    const columnas   = COLUMNAS[tabActiva] ?? [];
+
+    /* ── Close dropdowns on outside click ── */
     useEffect(() => {
-        if (tabActiva === 'escuelas') {
-            cargarEscuelas();
-        }
+        const handler = (e: MouseEvent) => {
+            if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) setDropOpen(false);
+            if (addRef.current      && !addRef.current.contains(e.target as Node))      setAddOpen(false);
+        };
+            document.addEventListener('mousedown', handler);
+            return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    /* ── Load data when tab changes ── */
+    useEffect(() => {
+        if (tabActiva === 'escuelas') cargarEscuelas();
+        setSearch('');
+        setSortKey(null);
+        setSortAsc(true);
     }, [tabActiva]);
 
+    /* ── Toast helper ── */
+    const showToast = (msg: string, type: Toast['type'] = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 2600);
+    };
+
+    /* ── Sort ── */
+    const handleSort = (key: string) => {
+        if (sortKey === key) setSortAsc(v => !v);
+        else { setSortKey(key); setSortAsc(true); }
+    };
+
+    /* ══ ESCUELAS CRUD ══ */
     const cargarEscuelas = async () => {
         setLoadingDatos(true);
         try {
             const data = await getEscuelas();
             setDatosEscuelas(data);
-        } catch (error) {
-            console.error("Error cargando escuelas:", error);
+        } catch (err) {
+            console.error('Error cargando escuelas:', err);
+            showToast('Error al cargar los datos', 'error');
         } finally {
             setLoadingDatos(false);
         }
@@ -95,17 +135,87 @@ export default function Catalogos() {
 
     const handleGuardarEscuela = async (data: any) => {
         try {
-            await createEscuela(data);
-            await cargarEscuelas(); // Recarga la tabla para mostrar la nueva
-        } catch (error: any) {
-            alert(error.message || "Error al crear la escuela");
-            throw error; // Lanza el error para que el Modal no se cierre
+            if (escuelaEditando) {
+                await updateEscuela({ id_escuela: escuelaEditando.id_escuela, ...data });
+                showToast(`"${data.nombre}" actualizada correctamente`);
+            } else {
+                await createEscuela(data);
+                showToast(`"${data.nombre}" creada correctamente`);
+            }
+            await cargarEscuelas();
+            setEscuelaEditando(null);
+        } catch (err: any) {
+            throw err; // el ModalEscuela muestra el error internamente
         }
     };
-    // 👆 HASTA AQUÍ TERMINA LA LÓGICA 👆
+
+    // Al presionar el botón basura de la fila — abre el modal en modo edición
+    // y el usuario confirma la eliminación desde la pantalla confirm-delete del modal
+    const handleOpenDeleteEscuela = (escuela: any) => {
+        setEscuelaEditando(escuela);
+        setIsModalEscuelaOpen(true);
+    };
+
+    // Llamado desde onDelete del ModalEscuela después de confirmar
+    const handleConfirmDeleteEscuela = async () => {
+        if (!escuelaEditando) return;
+        try {
+            await deleteEscuela(escuelaEditando.id_escuela);
+            showToast(`"${escuelaEditando.nombre}" eliminada`, 'delete');
+            await cargarEscuelas();
+            setEscuelaEditando(null);
+        } catch (err: any) {
+            throw err;
+        }
+    };
+
+    /* ── Filtered & sorted escuelas ── */
+    const escuelasFiltradas = datosEscuelas
+    .filter(e =>
+    [e.nombre, e.siglas, e.municipio?.nombre, e.municipio?.estado?.nombre]
+    .join(' ').toLowerCase()
+    .includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+        if (!sortKey) return 0;
+        const val = (obj: any) =>
+        sortKey === 'municipio' ? obj.municipio?.nombre ?? ''
+        : sortKey === 'estado'    ? obj.municipio?.estado?.nombre ?? ''
+        : obj[sortKey] ?? '';
+        return sortAsc
+        ? String(val(a)).localeCompare(String(val(b)))
+        : String(val(b)).localeCompare(String(val(a)));
+    });
+
+    const datosActuales  = tabActiva === 'escuelas' ? escuelasFiltradas : [];
+    const totalRegistros = tabActiva === 'escuelas' ? datosEscuelas.length : 0;
 
     return (
         <>
+        {/* ── Toast ── */}
+        <AnimatePresence>
+        {toast && (
+            <motion.div
+            className="cat-toast"
+            initial={{ opacity:0, y:-50, scale:0.9 }}
+            animate={{ opacity:1, y:0,   scale:1   }}
+            exit={{ opacity:0,   y:-40,  scale:0.9 }}
+            transition={{ type:'spring', stiffness:300, damping:22 }}
+            >
+            <span className="cat-toast-icon" style={{
+                color: toast.type === 'success' ? '#06d6a0' : '#ff5050'
+            }}>
+            {toast.type === 'success'
+                ? <CheckCircle size={16} />
+                : <Trash2 size={16} />
+            }
+            </span>
+            {toast.msg}
+            <div className="cat-toast-bar" />
+            </motion.div>
+        )}
+        </AnimatePresence>
+
         <div className="cat-root">
         <UserGreeting />
 
@@ -116,27 +226,27 @@ export default function Catalogos() {
         <p>Administra los registros de cada categoría del sistema.</p>
         </div>
 
-        {/* Add button with dropdown list */}
-        <div className="cat-add-wrap" ref={dropRef}>
+        {/* Add button + what-to-register dropdown */}
+        <div className="cat-add-wrap" ref={addRef}>
         <motion.button
         className="cat-add-btn"
         onClick={() => setAddOpen(v => !v)}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale:1.02 }}
+        whileTap={{ scale:0.97 }}
         >
-        <Plus size={18} />
+        <Plus size={17} />
         Añadir registro
-        <ChevronDown size={15} style={{ transform: addOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+        <ChevronDown size={14} style={{ transition:'transform .2s', transform: addOpen ? 'rotate(180deg)' : 'none' }} />
         </motion.button>
 
         <AnimatePresence>
         {addOpen && (
             <motion.div
             className="cat-add-dropdown"
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0,  scale: 1    }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.18 }}
+            initial={{ opacity:0, y:-10, scale:0.96 }}
+            animate={{ opacity:1, y:0,   scale:1    }}
+            exit={{ opacity:0,   y:-10,  scale:0.96 }}
+            transition={{ duration:.18 }}
             >
             <p className="cat-add-drop-header">¿Qué deseas registrar?</p>
             {TABS.map(tab => (
@@ -146,22 +256,19 @@ export default function Catalogos() {
                 onClick={() => {
                     setTabActiva(tab.id);
                     setAddOpen(false);
-                    // LÓGICA MÁGICA: Si escoge escuelas, abre el modal
                     if (tab.id === 'escuelas') {
+                        setEscuelaEditando(null);
                         setIsModalEscuelaOpen(true);
-                    } else {
-                        alert(`El formulario de ${tab.label} está en construcción 🚧`);
                     }
+                    // TODO: otros modales aquí (empleados, vendedores, etc.)
                 }}
                 >
                 <span className="cat-add-drop-icon">{tab.icon}</span>
                 <span>
                 <span className="cat-add-drop-label">{tab.label}</span>
-                <span className="cat-add-drop-sub" style={{ display:'block' }}>
-                Nuevo registro
+                <span className="cat-add-drop-sub">Nuevo registro</span>
                 </span>
-                </span>
-                <ChevronRight size={13} style={{ color:'rgba(26,0,96,0.25)', marginLeft:'auto' }} />
+                <ChevronRight size={13} className="cat-add-drop-arrow" />
                 </button>
             ))}
             </motion.div>
@@ -170,8 +277,8 @@ export default function Catalogos() {
         </div>
         </div>
 
-        {/* ── Category selector dropdown ── */}
-        <div className="cat-selector-wrap">
+        {/* ── Category selector ── */}
+        <div className="cat-selector-wrap" ref={selectorRef}>
         <button
         className="cat-selector-btn"
         onClick={() => setDropOpen(v => !v)}
@@ -188,19 +295,16 @@ export default function Catalogos() {
         {dropOpen && (
             <motion.div
             className="cat-dropdown"
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0,  scale: 1    }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ duration: 0.18 }}
+            initial={{ opacity:0, y:-10, scale:0.97 }}
+            animate={{ opacity:1, y:0,   scale:1    }}
+            exit={{ opacity:0,   y:-10,  scale:0.97 }}
+            transition={{ duration:.2, ease:[0.22,1,0.36,1] }}
             >
             {TABS.map(tab => (
                 <button
                 key={tab.id}
                 className={`cat-drop-item${tabActiva === tab.id ? ' active' : ''}`}
-                onClick={() => {
-                    setTabActiva(tab.id);
-                    setDropOpen(false);
-                }}
+                onClick={() => { setTabActiva(tab.id); setDropOpen(false); }}
                 >
                 <span className="cat-drop-item-icon">{tab.icon}</span>
                 <span className="cat-drop-item-label">{tab.label}</span>
@@ -212,78 +316,169 @@ export default function Catalogos() {
         </AnimatePresence>
         </div>
 
-        {/* ── Main table card ── */}
+        {/* ── Table card ── */}
         <AnimatePresence mode="wait">
         <motion.div
         key={tabActiva}
         className="cat-card"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0  }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.25, ease: [0.22,1,0.36,1] }}
+        initial={{ opacity:0, y:18 }}
+        animate={{ opacity:1, y:0  }}
+        exit={{ opacity:0,   y:-10 }}
+        transition={{ duration:.28, ease:[0.22,1,0.36,1] }}
         >
         {/* Card header */}
         <div className="cat-card-header">
-        <div className="cat-card-title">
+        <div className="cat-card-header-left">
         <span className="cat-card-title-icon">{tabActual.icon}</span>
-        {tabActual.label}
-        </div>
-        {/* Aquí puedes hacer que el contador sea real sumando datosEscuelas.length */}
-        <span className="cat-count-badge">
-        {tabActiva === 'escuelas' ? datosEscuelas.length : 0} registros
-        </span>
+        <span className="cat-card-title">{tabActual.label}</span>
+        <span className="cat-count-badge">{totalRegistros} registros</span>
         </div>
 
-        {/* Table with horizontal scroll */}
+        <div className="cat-card-header-right">
+        {tabActiva === 'escuelas' && (
+            <div className="cat-search-wrap">
+            <Search size={13} />
+            <input
+            className="cat-search-input"
+            placeholder="Buscar escuela..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+                <button
+                onClick={() => setSearch('')}
+                style={{ background:'none', border:'none', cursor:'pointer', display:'flex', color:'rgba(26,0,96,0.3)', padding:0 }}
+                >
+                <X size={12} />
+                </button>
+            )}
+            </div>
+        )}
+        </div>
+        </div>
+
+        {/* Table */}
         <div className="cat-table-scroll">
         <table className="cat-table">
         <thead>
         <tr>
         {columnas.map(col => (
-            <th key={col.key}>{col.label}</th>
+            <th
+            key={col.key}
+            className={col.sortable ? 'cat-th-sortable' : ''}
+            onClick={() => col.sortable && handleSort(col.key)}
+            >
+            {col.sortable ? (
+                <div className="cat-th-inner">
+                {col.label}
+                <ArrowUpDown size={11} className="cat-sort-icon"
+                style={{ opacity: sortKey === col.key ? 1 : 0.35 }}
+                />
+                </div>
+            ) : col.label}
+            </th>
         ))}
         <th style={{ textAlign:'right', paddingRight:20 }}>Acciones</th>
         </tr>
         </thead>
         <tbody>
-        {loadingDatos ? (
-            <tr><td colSpan={columnas.length + 1} className="p-8 text-center font-bold text-[#1a0060]">Cargando datos...</td></tr>
-        ) : tabActiva === 'escuelas' && datosEscuelas.length > 0 ? (
-            datosEscuelas.map((escuela) => (
-                <tr key={escuela.id_escuela}>
+
+        {/* Loading */}
+        {loadingDatos && (
+            <tr>
+            <td colSpan={columnas.length + 1} style={{ padding:'48px 24px', textAlign:'center' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, color:'rgba(26,0,96,0.4)' }}>
+            <Loader2 size={18} style={{ animation:'cat-spin 1s linear infinite' }} />
+            <span style={{ fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:13 }}>Cargando datos...</span>
+            </div>
+            <style>{`@keyframes cat-spin{to{transform:rotate(360deg)}}`}</style>
+            </td>
+            </tr>
+        )}
+
+        {/* Escuelas rows */}
+        {!loadingDatos && tabActiva === 'escuelas' && datosActuales.length > 0 &&
+            datosActuales.map((escuela, i) => (
+                <motion.tr
+                key={escuela.id_escuela}
+                initial={{ opacity:0, x:-8 }}
+                animate={{ opacity:1, x:0  }}
+                transition={{ delay: i * 0.03 }}
+                >
                 <td>#{escuela.id_escuela}</td>
-                <td className="font-bold text-[#1a0060]">{escuela.nombre}</td>
+                <td style={{ fontWeight:600, color:'#1a0060' }}>{escuela.nombre}</td>
                 <td>{escuela.siglas}</td>
-                <td>{escuela.municipio?.nombre || 'N/A'}</td>
-                <td>{escuela.municipio?.estado?.nombre || 'N/A'}</td>
-                <td className="cat-actions">
-                <button className="cat-action-btn" title="Editar">✏️</button>
-                <button className="cat-action-btn danger" title="Desactivar">🗑️</button>
+                <td>{escuela.municipio?.nombre || '—'}</td>
+                <td>{escuela.municipio?.estado?.nombre || '—'}</td>
+                <td>
+                <div className="cat-actions">
+                <button
+                className="cat-action-btn"
+                title="Editar"
+                onClick={() => {
+                    setEscuelaEditando(escuela);
+                    setIsModalEscuelaOpen(true);
+                }}
+                >
+                <Pencil size={13} />
+                </button>
+                <button
+                className="cat-action-btn danger"
+                title="Eliminar"
+                onClick={() => handleOpenDeleteEscuela(escuela)}
+                >
+                <Trash2 size={13} />
+                </button>
+                </div>
                 </td>
-                </tr>
+                </motion.tr>
             ))
-        ) : (
+        }
+
+        {/* Empty state */}
+        {!loadingDatos && datosActuales.length === 0 && (
             <tr>
             <td colSpan={columnas.length + 1} style={{ padding:0, border:'none' }}>
             <div className="cat-empty">
             <div className="cat-empty-icon">{tabActual.icon}</div>
-            <p className="cat-empty-title">Sin registros aún</p>
-            <p className="cat-empty-sub">Usa el botón "Añadir registro" para crear el primero.</p>
+            <p className="cat-empty-title">
+            {search ? 'Sin resultados' : 'Sin registros todavía'}
+            </p>
+            <p className="cat-empty-sub">
+            {search
+                ? `No se encontraron ${tabActual.label.toLowerCase()} con "${search}".`
+                : `No hay ${tabActual.label.toLowerCase()} registrados. Usa "Añadir registro" para crear el primero.`
+            }
+            </p>
+            {!search && tabActiva === 'escuelas' && (
+                <button
+                className="cat-empty-cta"
+                onClick={() => { setEscuelaEditando(null); setIsModalEscuelaOpen(true); }}
+                >
+                <Plus size={14} /> Añadir escuela
+                </button>
+            )}
             </div>
             </td>
             </tr>
         )}
+
         </tbody>
         </table>
         </div>
         </motion.div>
         </AnimatePresence>
 
-        {/* 👇 RENDERIZAMOS EL MODAL AQUÍ ABAJO */}
+        {/* ── Modal Escuela ── */}
         <ModalEscuela
         isOpen={isModalEscuelaOpen}
-        onClose={() => setIsModalEscuelaOpen(false)}
+        onClose={() => {
+            setIsModalEscuelaOpen(false);
+            setEscuelaEditando(null);
+        }}
         onSave={handleGuardarEscuela}
+        onDelete={escuelaEditando ? handleConfirmDeleteEscuela : undefined}
+        escuelaAEditar={escuelaEditando}
         />
 
         </div>
