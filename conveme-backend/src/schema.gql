@@ -456,7 +456,7 @@ type Mutation {
   removeEmpleado(id_empleado: Int!): Boolean!
   createVendedor(createVendedorInput: CreateVendedorInput!): Vendedor!
   updateVendedor(updateVendedorInput: UpdateVendedorInput!): Vendedor!
-  removeVendedor(id_vendedor: Int!): Boolean!
+  removeVendedor(id_vendedor: Int!): Vendedor!
   createCliente(createClienteInput: CreateClienteInput!): Cliente!
   updateCliente(updateClienteInput: UpdateClienteInput!): Cliente!
   removeCliente(id_cliente: Int!): Boolean!

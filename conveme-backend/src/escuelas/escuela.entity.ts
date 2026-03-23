@@ -27,6 +27,6 @@ export class Escuela {
     municipio: Municipio;
 
     @Field()
-    @Column({ default: true })
+    @Column({ default: true }) // 👈 Muy importante para que nazcan activas
     activa: boolean;
 }

@@ -28,7 +28,7 @@ export class VendedoresResolver {
         return this.vendedoresService.update(updateVendedorInput.id_vendedor, updateVendedorInput);
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => Vendedor)
     removeVendedor(@Args('id_vendedor', { type: () => Int }) id_vendedor: number) {
         return this.vendedoresService.remove(id_vendedor);
     }

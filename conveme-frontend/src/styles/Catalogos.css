@@ -511,7 +511,8 @@
     position: fixed;
     top: 24px; left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
+    z-index: 99999;
+    isolation: isolate;
     background: #fff;
     border: 3px solid #1a0060;
     border-radius: 18px;
@@ -526,6 +527,8 @@
     color: #1a0060;
     white-space: nowrap;
     pointer-events: none;
+    /* Force above any backdrop-filter stacking context */
+    will-change: transform;
 }
 .cat-toast-icon { display: flex; flex-shrink: 0; }
 .cat-toast-bar {

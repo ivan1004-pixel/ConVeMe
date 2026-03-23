@@ -25,7 +25,7 @@ export class Vendedor {
     escuela_id: number;
 
     @Field(() => Escuela, { nullable: true })
-    @ManyToOne(() => Escuela)
+    @ManyToOne(() => Escuela, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'escuela_id' })
     escuela: Escuela;
 

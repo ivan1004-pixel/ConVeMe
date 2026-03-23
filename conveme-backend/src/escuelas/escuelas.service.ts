@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Escuela } from './escuela.entity';
@@ -21,6 +21,8 @@ export class EscuelasService {
 
     async findAll(): Promise<Escuela[]> {
         return this.escuelaRepository.find({
+            // 👇 FILTRO: Solo le mandamos a React las escuelas que están "vivas"
+            where: { activa: true },
             relations: ['municipio', 'municipio.estado', 'municipio.estado.pais']
         });
     }
@@ -35,7 +37,7 @@ export class EscuelasService {
     }
 
     async update(id_escuela: number, updateEscuelaInput: UpdateEscuelaInput): Promise<Escuela> {
-        // 👇 Como updateEscuelaInput ya trae el ID, se lo pasamos directo a preload
+        // Como updateEscuelaInput ya trae el ID, se lo pasamos directo a preload
         const escuela = await this.escuelaRepository.preload(updateEscuelaInput);
 
         if (!escuela) throw new NotFoundException(`Escuela #${id_escuela} no encontrada`);
@@ -43,9 +45,16 @@ export class EscuelasService {
         await this.escuelaRepository.save(escuela);
         return this.findOne(id_escuela);
     }
+
     async remove(id_escuela: number): Promise<Escuela> {
-        const escuelaABorrar = await this.findOne(id_escuela); // La buscamos antes de borrarla
-        await this.escuelaRepository.delete(id_escuela);
-        return escuelaABorrar; // Devolvemos los datos de la que acabamos de borrar
+        // 1. Buscamos la escuela (si no existe, findOne lanza el error)
+        const escuela = await this.findOne(id_escuela);
+
+        // 2. SOFT DELETE: En lugar de usar .delete(), simplemente le bajamos el switch
+        escuela.activa = false;
+        await this.escuelaRepository.save(escuela);
+
+        // 3. Devolvemos la escuela (ya apagada)
+        return escuela;
     }
 }

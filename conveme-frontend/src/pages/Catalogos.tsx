@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserGreeting from '../components/ui/UserGreeting';
-import ModalEscuela from '../components/catalogos/ModalEscuela';
-import { getEscuelas, createEscuela, updateEscuela, deleteEscuela } from '../services/escuela.service';
+import ModalEscuela  from '../components/catalogos/ModalEscuela';
+import ModalVendedor from '../components/catalogos/ModalVendedor';
+import { getEscuelas,   createEscuela,   updateEscuela,   deleteEscuela   } from '../services/escuela.service';
+import { getVendedores, createVendedor,  updateVendedor,  deleteVendedor  } from '../services/vendedor.service';
 import {
     Plus, ChevronDown, School, Users, UserCheck,
     CreditCard, Calendar, ChevronRight,
@@ -37,11 +40,11 @@ const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean 
         { key: 'email',    label: 'Email'             },
     ],
     vendedores: [
-        { key: 'id',         label: 'ID'                },
-        { key: 'nombre',     label: 'Nombre Completo',  sortable: true },
-        { key: 'escuela',    label: 'Escuela Asignada', sortable: true },
-        { key: 'instagram',  label: 'Instagram'         },
-        { key: 'comisiones', label: 'Comisiones',       sortable: true },
+        { key: 'id_vendedor', label: 'ID'                },
+        { key: 'nombre',      label: 'Nombre Completo',  sortable: true },
+        { key: 'escuela',     label: 'Escuela Asignada', sortable: true },
+        { key: 'instagram',   label: 'Instagram'         },
+        { key: 'comisiones',  label: 'Comisiones',       sortable: true },
     ],
     cuentas: [
         { key: 'id',       label: 'ID'       },
@@ -61,138 +64,12 @@ const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean 
 
 interface Toast { msg: string; type: 'success' | 'delete' | 'error' }
 
-export default function Catalogos() {
-    const [tabActiva, setTabActiva] = useState('escuelas');
-    const [dropOpen,  setDropOpen]  = useState(false);
-    const [addOpen,   setAddOpen]   = useState(false);
-
-    // Modal escuela
-    const [isModalEscuelaOpen, setIsModalEscuelaOpen] = useState(false);
-    const [escuelaEditando,    setEscuelaEditando]    = useState<any | null>(null);
-
-    // Data
-    const [datosEscuelas, setDatosEscuelas] = useState<any[]>([]);
-    const [loadingDatos,  setLoadingDatos]  = useState(false);
-
-    // Search & sort
-    const [search,  setSearch]  = useState('');
-    const [sortKey, setSortKey] = useState<string | null>(null);
-    const [sortAsc, setSortAsc] = useState(true);
-
-    // Toast
-    const [toast, setToast] = useState<Toast | null>(null);
-
-    // Refs for outside-click
-    const selectorRef = useRef<HTMLDivElement>(null);
-    const addRef      = useRef<HTMLDivElement>(null);
-
-    const tabActual  = TABS.find(t => t.id === tabActiva)!;
-    const columnas   = COLUMNAS[tabActiva] ?? [];
-
-    /* ── Close dropdowns on outside click ── */
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) setDropOpen(false);
-            if (addRef.current      && !addRef.current.contains(e.target as Node))      setAddOpen(false);
-        };
-            document.addEventListener('mousedown', handler);
-            return () => document.removeEventListener('mousedown', handler);
-    }, []);
-
-    /* ── Load data when tab changes ── */
-    useEffect(() => {
-        if (tabActiva === 'escuelas') cargarEscuelas();
-        setSearch('');
-        setSortKey(null);
-        setSortAsc(true);
-    }, [tabActiva]);
-
-    /* ── Toast helper ── */
-    const showToast = (msg: string, type: Toast['type'] = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 2600);
-    };
-
-    /* ── Sort ── */
-    const handleSort = (key: string) => {
-        if (sortKey === key) setSortAsc(v => !v);
-        else { setSortKey(key); setSortAsc(true); }
-    };
-
-    /* ══ ESCUELAS CRUD ══ */
-    const cargarEscuelas = async () => {
-        setLoadingDatos(true);
-        try {
-            const data = await getEscuelas();
-            setDatosEscuelas(data);
-        } catch (err) {
-            console.error('Error cargando escuelas:', err);
-            showToast('Error al cargar los datos', 'error');
-        } finally {
-            setLoadingDatos(false);
-        }
-    };
-
-    const handleGuardarEscuela = async (data: any) => {
-        try {
-            if (escuelaEditando) {
-                await updateEscuela({ id_escuela: escuelaEditando.id_escuela, ...data });
-                showToast(`"${data.nombre}" actualizada correctamente`);
-            } else {
-                await createEscuela(data);
-                showToast(`"${data.nombre}" creada correctamente`);
-            }
-            await cargarEscuelas();
-            setEscuelaEditando(null);
-        } catch (err: any) {
-            throw err; // el ModalEscuela muestra el error internamente
-        }
-    };
-
-    // Al presionar el botón basura de la fila — abre el modal en modo edición
-    // y el usuario confirma la eliminación desde la pantalla confirm-delete del modal
-    const handleOpenDeleteEscuela = (escuela: any) => {
-        setEscuelaEditando(escuela);
-        setIsModalEscuelaOpen(true);
-    };
-
-    // Llamado desde onDelete del ModalEscuela después de confirmar
-    const handleConfirmDeleteEscuela = async () => {
-        if (!escuelaEditando) return;
-        try {
-            await deleteEscuela(escuelaEditando.id_escuela);
-            showToast(`"${escuelaEditando.nombre}" eliminada`, 'delete');
-            await cargarEscuelas();
-            setEscuelaEditando(null);
-        } catch (err: any) {
-            throw err;
-        }
-    };
-
-    /* ── Filtered & sorted escuelas ── */
-    const escuelasFiltradas = datosEscuelas
-    .filter(e =>
-    [e.nombre, e.siglas, e.municipio?.nombre, e.municipio?.estado?.nombre]
-    .join(' ').toLowerCase()
-    .includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-        if (!sortKey) return 0;
-        const val = (obj: any) =>
-        sortKey === 'municipio' ? obj.municipio?.nombre ?? ''
-        : sortKey === 'estado'    ? obj.municipio?.estado?.nombre ?? ''
-        : obj[sortKey] ?? '';
-        return sortAsc
-        ? String(val(a)).localeCompare(String(val(b)))
-        : String(val(b)).localeCompare(String(val(a)));
-    });
-
-    const datosActuales  = tabActiva === 'escuelas' ? escuelasFiltradas : [];
-    const totalRegistros = tabActiva === 'escuelas' ? datosEscuelas.length : 0;
-
-    return (
-        <>
-        {/* ── Toast ── */}
+/* ── Toast Portal ─────────────────────────────────────────────────────────
+ *  Renderizamos el toast directamente en document.body para que quede fuera
+ *  de cualquier stacking context creado por backdrop-filter del modal.
+ ─ *─ */
+function ToastPortal({ toast }: { toast: Toast | null }) {
+    return createPortal(
         <AnimatePresence>
         {toast && (
             <motion.div
@@ -214,7 +91,189 @@ export default function Catalogos() {
             <div className="cat-toast-bar" />
             </motion.div>
         )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+    );
+}
+
+export default function Catalogos() {
+    const [tabActiva, setTabActiva] = useState('escuelas');
+    const [dropOpen,  setDropOpen]  = useState(false);
+    const [addOpen,   setAddOpen]   = useState(false);
+
+    // Modales
+    const [isModalEscuelaOpen,  setIsModalEscuelaOpen]  = useState(false);
+    const [escuelaEditando,     setEscuelaEditando]     = useState<any | null>(null);
+    const [isModalVendedorOpen, setIsModalVendedorOpen] = useState(false);
+    const [vendedorEditando,    setVendedorEditando]    = useState<any | null>(null);
+
+    // Data
+    const [datosEscuelas,   setDatosEscuelas]   = useState<any[]>([]);
+    const [datosVendedores, setDatosVendedores] = useState<any[]>([]);
+    const [loadingDatos,    setLoadingDatos]    = useState(false);
+
+    // Search & sort
+    const [search,  setSearch]  = useState('');
+    const [sortKey, setSortKey] = useState<string | null>(null);
+    const [sortAsc, setSortAsc] = useState(true);
+
+    // Toast — null cuando no hay nada que mostrar
+    const [toast, setToast] = useState<Toast | null>(null);
+
+    // Refs for outside-click
+    const selectorRef = useRef<HTMLDivElement>(null);
+    const addRef      = useRef<HTMLDivElement>(null);
+
+    const tabActual = TABS.find(t => t.id === tabActiva)!;
+    const columnas  = COLUMNAS[tabActiva] ?? [];
+
+    /* ── Outside click ── */
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) setDropOpen(false);
+            if (addRef.current      && !addRef.current.contains(e.target as Node))      setAddOpen(false);
+        };
+            document.addEventListener('mousedown', handler);
+            return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    /* ── Load data on tab change ── */
+    useEffect(() => {
+        if (tabActiva === 'escuelas')   cargarEscuelas();
+        if (tabActiva === 'vendedores') cargarVendedores();
+        setSearch(''); setSortKey(null); setSortAsc(true);
+    }, [tabActiva]);
+
+    /* ── Toast helper ── */
+    const showToast = (msg: string, type: Toast['type'] = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 2600);
+    };
+
+    /* ── Sort ── */
+    const handleSort = (key: string) => {
+        if (sortKey === key) setSortAsc(v => !v);
+        else { setSortKey(key); setSortAsc(true); }
+    };
+
+    /* ══ ESCUELAS CRUD ══ */
+    const cargarEscuelas = async () => {
+        setLoadingDatos(true);
+        try { setDatosEscuelas(await getEscuelas()); }
+        catch (err) { console.error(err); showToast('Error al cargar los datos', 'error'); }
+        finally { setLoadingDatos(false); }
+    };
+
+    const handleGuardarEscuela = async (data: any) => {
+        try {
+            if (escuelaEditando) {
+                await updateEscuela({ id_escuela: escuelaEditando.id_escuela, ...data });
+                showToast(`"${data.nombre}" actualizada correctamente`);
+            } else {
+                await createEscuela(data);
+                showToast(`"${data.nombre}" creada correctamente`);
+            }
+            await cargarEscuelas();
+            setEscuelaEditando(null);
+        } catch (err: any) { throw err; }
+    };
+
+    const handleOpenDeleteEscuela = (escuela: any) => {
+        setEscuelaEditando(escuela);
+        setIsModalEscuelaOpen(true);
+    };
+
+    const handleConfirmDeleteEscuela = async () => {
+        if (!escuelaEditando) return;
+        try {
+            await deleteEscuela(escuelaEditando.id_escuela);
+            showToast(`"${escuelaEditando.nombre}" eliminada`, 'delete');
+            await cargarEscuelas();
+            setEscuelaEditando(null);
+        } catch (err: any) { throw err; }
+    };
+
+    /* ══ VENDEDORES CRUD ══ */
+    const cargarVendedores = async () => {
+        setLoadingDatos(true);
+        try { setDatosVendedores(await getVendedores()); }
+        catch (err) { console.error(err); showToast('Error al cargar los datos', 'error'); }
+        finally { setLoadingDatos(false); }
+    };
+
+    const handleGuardarVendedor = async (data: any) => {
+        try {
+            if (vendedorEditando) {
+                await updateVendedor({ id_vendedor: vendedorEditando.id_vendedor, ...data });
+                showToast(`"${data.nombre_completo}" actualizado correctamente`);
+            } else {
+                await createVendedor(data);
+                showToast(`"${data.nombre_completo}" creado correctamente`);
+            }
+            await cargarVendedores();
+            setVendedorEditando(null);
+        } catch (err: any) { throw err; }
+    };
+
+    const handleOpenDeleteVendedor = (vendedor: any) => {
+        setVendedorEditando(vendedor);
+        setIsModalVendedorOpen(true);
+    };
+
+    const handleConfirmDeleteVendedor = async () => {
+        if (!vendedorEditando) return;
+        try {
+            await deleteVendedor(vendedorEditando.id_vendedor);
+            showToast(`"${vendedorEditando.nombre_completo}" eliminado`, 'delete');
+            await cargarVendedores();
+            setVendedorEditando(null);
+        } catch (err: any) { throw err; }
+    };
+
+    /* ── Filtered & sorted data ── */
+    const datosTablaActual = tabActiva === 'escuelas'   ? datosEscuelas
+    : tabActiva === 'vendedores' ? datosVendedores
+    : [];
+
+    const datosActuales = datosTablaActual
+    .filter(e => {
+        const text = tabActiva === 'escuelas'
+    ? [e.nombre, e.siglas, e.municipio?.nombre, e.municipio?.estado?.nombre].join(' ').toLowerCase()
+    : tabActiva === 'vendedores'
+    ? [e.nombre_completo, e.instagram_handle, e.escuela?.nombre].join(' ').toLowerCase()
+    : '';
+    return text.includes(search.toLowerCase());
+    })
+    .sort((a, b) => {
+        if (!sortKey) return 0;
+        const val = (obj: any) => {
+            if (tabActiva === 'escuelas') {
+                return sortKey === 'municipio' ? obj.municipio?.nombre ?? ''
+                : sortKey === 'estado'    ? obj.municipio?.estado?.nombre ?? ''
+                : obj[sortKey] ?? '';
+            }
+            if (tabActiva === 'vendedores') {
+                return sortKey === 'escuela'    ? obj.escuela?.nombre ?? ''
+                : sortKey === 'nombre'     ? obj.nombre_completo ?? ''
+    : sortKey === 'comisiones' ? obj.comision_fija_menudeo ?? 0
+    : obj[sortKey] ?? '';
+            }
+            return '';
+        };
+        const vA = val(a), vB = val(b);
+        if (typeof vA === 'number' && typeof vB === 'number')
+            return sortAsc ? vA - vB : vB - vA;
+        return sortAsc
+        ? String(vA).localeCompare(String(vB))
+        : String(vB).localeCompare(String(vA));
+    });
+
+    const totalRegistros = datosTablaActual.length;
+
+    return (
+        <>
+        {/* ── Toast — portaled to document.body, fuera de cualquier stacking context ── */}
+        <ToastPortal toast={toast} />
 
         <div className="cat-root">
         <UserGreeting />
@@ -226,7 +285,7 @@ export default function Catalogos() {
         <p>Administra los registros de cada categoría del sistema.</p>
         </div>
 
-        {/* Add button + what-to-register dropdown */}
+        {/* Add button + dropdown */}
         <div className="cat-add-wrap" ref={addRef}>
         <motion.button
         className="cat-add-btn"
@@ -259,8 +318,11 @@ export default function Catalogos() {
                     if (tab.id === 'escuelas') {
                         setEscuelaEditando(null);
                         setIsModalEscuelaOpen(true);
+                    } else if (tab.id === 'vendedores') {
+                        setVendedorEditando(null);
+                        setIsModalVendedorOpen(true);
                     }
-                    // TODO: otros modales aquí (empleados, vendedores, etc.)
+                    // TODO: otros modales (empleados, cuentas, eventos)
                 }}
                 >
                 <span className="cat-add-drop-icon">{tab.icon}</span>
@@ -335,12 +397,12 @@ export default function Catalogos() {
         </div>
 
         <div className="cat-card-header-right">
-        {tabActiva === 'escuelas' && (
+        {['escuelas','vendedores'].includes(tabActiva) && (
             <div className="cat-search-wrap">
             <Search size={13} />
             <input
             className="cat-search-input"
-            placeholder="Buscar escuela..."
+            placeholder={`Buscar ${tabActual.label.toLowerCase()}...`}
             value={search}
             onChange={e => setSearch(e.target.value)}
             />
@@ -412,21 +474,49 @@ export default function Catalogos() {
                 <td>{escuela.municipio?.estado?.nombre || '—'}</td>
                 <td>
                 <div className="cat-actions">
-                <button
-                className="cat-action-btn"
-                title="Editar"
-                onClick={() => {
-                    setEscuelaEditando(escuela);
-                    setIsModalEscuelaOpen(true);
-                }}
-                >
+                <button className="cat-action-btn" title="Editar" onClick={() => { setEscuelaEditando(escuela); setIsModalEscuelaOpen(true); }}>
                 <Pencil size={13} />
                 </button>
-                <button
-                className="cat-action-btn danger"
-                title="Eliminar"
-                onClick={() => handleOpenDeleteEscuela(escuela)}
+                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteEscuela(escuela)}>
+                <Trash2 size={13} />
+                </button>
+                </div>
+                </td>
+                </motion.tr>
+            ))
+        }
+
+        {/* Vendedores rows */}
+        {!loadingDatos && tabActiva === 'vendedores' && datosActuales.length > 0 &&
+            datosActuales.map((vendedor, i) => (
+                <motion.tr
+                key={vendedor.id_vendedor}
+                initial={{ opacity:0, x:-8 }}
+                animate={{ opacity:1, x:0  }}
+                transition={{ delay: i * 0.03 }}
                 >
+                <td>#{vendedor.id_vendedor}</td>
+                <td style={{ fontWeight:600, color:'#1a0060' }}>{vendedor.nombre_completo}</td>
+                <td>{vendedor.escuela?.nombre || '—'}</td>
+                <td style={{ color:'#cc55ff' }}>
+                {vendedor.instagram_handle ? `@${vendedor.instagram_handle}` : '—'}
+                </td>
+                <td>
+                <span style={{
+                    background:'#06d6a0', color:'#fff',
+                    padding:'3px 8px', borderRadius:6,
+                    fontSize:11, fontWeight:800,
+                    fontFamily:'Syne,sans-serif',
+                }}>
+                {vendedor.comision_fija_menudeo}% / {vendedor.comision_fija_mayoreo}%
+                </span>
+                </td>
+                <td>
+                <div className="cat-actions">
+                <button className="cat-action-btn" title="Editar" onClick={() => { setVendedorEditando(vendedor); setIsModalVendedorOpen(true); }}>
+                <Pencil size={13} />
+                </button>
+                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteVendedor(vendedor)}>
                 <Trash2 size={13} />
                 </button>
                 </div>
@@ -450,12 +540,15 @@ export default function Catalogos() {
                 : `No hay ${tabActual.label.toLowerCase()} registrados. Usa "Añadir registro" para crear el primero.`
             }
             </p>
-            {!search && tabActiva === 'escuelas' && (
+            {!search && (tabActiva === 'escuelas' || tabActiva === 'vendedores') && (
                 <button
                 className="cat-empty-cta"
-                onClick={() => { setEscuelaEditando(null); setIsModalEscuelaOpen(true); }}
+                onClick={() => {
+                    if (tabActiva === 'escuelas')   { setEscuelaEditando(null);  setIsModalEscuelaOpen(true);  }
+                    if (tabActiva === 'vendedores') { setVendedorEditando(null); setIsModalVendedorOpen(true); }
+                }}
                 >
-                <Plus size={14} /> Añadir escuela
+                <Plus size={14} /> Añadir {tabActual.label.toLowerCase()}
                 </button>
             )}
             </div>
@@ -469,16 +562,21 @@ export default function Catalogos() {
         </motion.div>
         </AnimatePresence>
 
-        {/* ── Modal Escuela ── */}
+        {/* ── Modales ── */}
         <ModalEscuela
         isOpen={isModalEscuelaOpen}
-        onClose={() => {
-            setIsModalEscuelaOpen(false);
-            setEscuelaEditando(null);
-        }}
+        onClose={() => { setIsModalEscuelaOpen(false); setEscuelaEditando(null); }}
         onSave={handleGuardarEscuela}
         onDelete={escuelaEditando ? handleConfirmDeleteEscuela : undefined}
         escuelaAEditar={escuelaEditando}
+        />
+
+        <ModalVendedor
+        isOpen={isModalVendedorOpen}
+        onClose={() => { setIsModalVendedorOpen(false); setVendedorEditando(null); }}
+        onSave={handleGuardarVendedor}
+        onDelete={vendedorEditando ? handleConfirmDeleteVendedor : undefined}
+        vendedorAEditar={vendedorEditando}
         />
 
         </div>
