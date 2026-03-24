@@ -28,7 +28,8 @@ export class ProductosResolver {
         return this.productosService.update(updateProductoInput.id_producto, updateProductoInput);
     }
 
-    @Mutation(() => Boolean)
+    // 👇 Cambiamos Boolean por Producto
+    @Mutation(() => Producto)
     removeProducto(@Args('id_producto', { type: () => Int }) id_producto: number) {
         return this.productosService.remove(id_producto);
     }

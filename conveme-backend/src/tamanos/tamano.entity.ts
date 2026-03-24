@@ -12,4 +12,9 @@ export class Tamano {
     @Field()
     @Column({ unique: true })
     descripcion: string;
+
+    // 👇 AÑADIDO: Para el Soft Delete
+    @Field()
+    @Column({ default: true })
+    activo: boolean;
 }

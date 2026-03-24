@@ -28,7 +28,8 @@ export class CategoriasResolver {
         return this.categoriasService.update(updateCategoriaInput.id_categoria, updateCategoriaInput);
     }
 
-    @Mutation(() => Boolean)
+    // 👇 Cambiamos Boolean por Categoria
+    @Mutation(() => Categoria)
     removeCategoria(@Args('id_categoria', { type: () => Int }) id_categoria: number) {
         return this.categoriasService.remove(id_categoria);
     }

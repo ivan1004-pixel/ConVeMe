@@ -4,5 +4,9 @@ import { CreateTamanoInput } from './create-tamano.input';
 @InputType()
 export class UpdateTamanoInput extends PartialType(CreateTamanoInput) {
     @Field(() => Int)
-    id_tamano: number; // Quitamos la ñ
+    id_tamano: number;
+
+    // 👇 AÑADIDO: Opcional para poder desactivar
+    @Field({ nullable: true })
+    activo?: boolean;
 }

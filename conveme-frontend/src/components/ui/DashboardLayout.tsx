@@ -112,7 +112,7 @@ export default function DashboardLayout() {
                 align-items: center;
                 justify-content: space-between;
                 padding: 0 16px;
-                height: 72px;
+                height: 50px;
                 border-bottom: 2px solid rgba(204,85,255,0.2);
                 flex-shrink: 0;
                 overflow: hidden;
@@ -323,7 +323,7 @@ export default function DashboardLayout() {
 
             /* ── Topbar ── */
             .dl-topbar {
-                height: 72px;
+                height: 50px;
                 flex-shrink: 0;
                 background: rgba(237,233,254,0.9);
                 border-bottom: 2.5px solid rgba(26,0,96,0.1);

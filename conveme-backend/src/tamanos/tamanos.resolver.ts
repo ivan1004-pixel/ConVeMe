@@ -28,7 +28,8 @@ export class TamanosResolver {
         return this.tamanosService.update(updateTamanoInput.id_tamano, updateTamanoInput);
     }
 
-    @Mutation(() => Boolean)
+    // 👇 Cambiamos Boolean por Tamano
+    @Mutation(() => Tamano)
     removeTamano(@Args('id_tamano', { type: () => Int }) id_tamano: number) {
         return this.tamanosService.remove(id_tamano);
     }

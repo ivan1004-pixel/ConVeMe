@@ -7,10 +7,11 @@ import Profile from './pages/Profile';
 import Catalogos from './pages/Catalogos';
 import { AdminRoute } from './components/ProtectedRoute';
 import DashboardLayout from './components/ui/DashboardLayout';
+import Inventario from './pages/Inventario';
 
 function App() {
   return (
-    <Routes>
+    <Routes>import Inventario from './pages/Inventario';
     {/* 🌍 Rutas Públicas */}
     <Route path="/" element={<Home />} />
     <Route path="/login" element={<Login />} />
@@ -23,11 +24,10 @@ function App() {
     <Route path="/dashboard" element={<DashboardHome />} />
     <Route path="/perfil" element={<Profile />} />
     <Route path="/crear-usuario" element={<CreateUser />} />
-
+    <Route path="/inventario" element={<Inventario />} />
     {/* Si escribes una URL rara, te regresa al inicio */}
     <Route path="*" element={<Navigate to="/dashboard" replace />} />
     <Route path="/catalogos" element={<Catalogos />} />
-
     </Route>
     </Route>
     </Routes>

@@ -11,4 +11,9 @@ export class Categoria {
     @Field()
     @Column({ unique: true })
     nombre: string;
+
+    // 👇 AÑADIDO: Para el Soft Delete
+    @Field()
+    @Column({ default: true })
+    activo: boolean;
 }

@@ -5,4 +5,8 @@ import { CreateCategoriaInput } from './create-categoria.input';
 export class UpdateCategoriaInput extends PartialType(CreateCategoriaInput) {
     @Field(() => Int)
     id_categoria: number;
+
+    // 👇 AÑADIDO: Opcional para poder desactivar
+    @Field({ nullable: true })
+    activo?: boolean;
 }

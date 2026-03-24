@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Categoria } from './categoria.entity';
@@ -13,13 +13,18 @@ export class CategoriasService {
     ) {}
 
     async create(createCategoriaInput: CreateCategoriaInput): Promise<Categoria> {
+        // 👇 VALIDACIÓN: Evitar categorías duplicadas
+        const existe = await this.categoriaRepository.findOne({ where: { nombre: createCategoriaInput.nombre } });
+        if (existe) throw new ConflictException(`La categoría "${createCategoriaInput.nombre}" ya existe.`);
+
         const nueva = this.categoriaRepository.create(createCategoriaInput);
         const guardada = await this.categoriaRepository.save(nueva);
         return this.findOne(guardada.id_categoria);
     }
 
     async findAll(): Promise<Categoria[]> {
-        return this.categoriaRepository.find();
+        // 👇 FILTRO: Solo mostramos las que están activas
+        return this.categoriaRepository.find({ where: { activo: true } });
     }
 
     async findOne(id_categoria: number): Promise<Categoria> {
@@ -29,14 +34,26 @@ export class CategoriasService {
     }
 
     async update(id_categoria: number, updateCategoriaInput: UpdateCategoriaInput): Promise<Categoria> {
-        const categoria = await this.findOne(id_categoria);
-        Object.assign(categoria, updateCategoriaInput);
+        // Validar si están intentando renombrar a algo que ya existe
+        if (updateCategoriaInput.nombre) {
+            const existe = await this.categoriaRepository.findOne({ where: { nombre: updateCategoriaInput.nombre } });
+            if (existe && existe.id_categoria !== id_categoria) {
+                throw new ConflictException(`La categoría "${updateCategoriaInput.nombre}" ya está en uso.`);
+            }
+        }
+
+        const categoria = await this.categoriaRepository.preload(updateCategoriaInput);
+        if (!categoria) throw new NotFoundException(`Categoría #${id_categoria} no encontrada`);
+
         await this.categoriaRepository.save(categoria);
         return this.findOne(id_categoria);
     }
 
-    async remove(id_categoria: number): Promise<boolean> {
-        const resultado = await this.categoriaRepository.delete(id_categoria);
-        return (resultado.affected ?? 0) > 0;
+    async remove(id_categoria: number): Promise<Categoria> {
+        const categoria = await this.findOne(id_categoria);
+        // 👇 SOFT DELETE: En lugar de .delete(), simplemente apagamos el switch
+        categoria.activo = false;
+        await this.categoriaRepository.save(categoria);
+        return categoria;
     }
 }

@@ -109,11 +109,13 @@ type Cliente {
 type Categoria {
   id_categoria: Int!
   nombre: String!
+  activo: Boolean!
 }
 
 type Tamano {
   id_tamano: Int!
   descripcion: String!
+  activo: Boolean!
 }
 
 type Producto {
@@ -465,13 +467,13 @@ type Mutation {
   removeCliente(id_cliente: Int!): Boolean!
   createCategoria(createCategoriaInput: CreateCategoriaInput!): Categoria!
   updateCategoria(updateCategoriaInput: UpdateCategoriaInput!): Categoria!
-  removeCategoria(id_categoria: Int!): Boolean!
+  removeCategoria(id_categoria: Int!): Categoria!
   createTamano(createTamanoInput: CreateTamanoInput!): Tamano!
   updateTamano(updateTamanoInput: UpdateTamanoInput!): Tamano!
-  removeTamano(id_tamano: Int!): Boolean!
+  removeTamano(id_tamano: Int!): Tamano!
   createProducto(createProductoInput: CreateProductoInput!): Producto!
   updateProducto(updateProductoInput: UpdateProductoInput!): Producto!
-  removeProducto(id_producto: Int!): Boolean!
+  removeProducto(id_producto: Int!): Producto!
   createInsumo(createInsumoInput: CreateInsumoInput!): Insumo!
   updateInsumo(updateInsumoInput: UpdateInsumoInput!): Insumo!
   removeInsumo(id_insumo: Int!): Boolean!
@@ -683,6 +685,7 @@ input CreateCategoriaInput {
 input UpdateCategoriaInput {
   nombre: String
   id_categoria: Int!
+  activo: Boolean
 }
 
 input CreateTamanoInput {
@@ -692,6 +695,7 @@ input CreateTamanoInput {
 input UpdateTamanoInput {
   descripcion: String
   id_tamano: Int!
+  activo: Boolean
 }
 
 input CreateProductoInput {

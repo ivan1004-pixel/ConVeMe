@@ -95,7 +95,7 @@ export default function DashboardHome() {
         {[
             { icon: <TrendingUp size={18} />, num: 'Hoy',  label: 'Actividad'    },
             { icon: <Users      size={18} />, num: rolId === 1 ? 'Admin' : rolId === 2 ? 'Ventas' : 'Prod.', label: 'Tu rol' },
-            { icon: <Package   size={18} />, num: cards.length, label: 'Módulos disponibles' },
+
         ].map((chip, i) => (
             <motion.div
             key={i}
