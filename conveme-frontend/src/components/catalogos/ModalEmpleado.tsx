@@ -3,8 +3,7 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import {
     X, Save, Users, MapPin, Briefcase,
     Search, ChevronDown, Check, Trash2, AlertTriangle,
-    RefreshCw, Mail, Phone, User, GripHorizontal,
-    UserPlus, UserCog
+    RefreshCw, Mail, Phone, User, GripHorizontal, UserPlus, UserCog
 } from 'lucide-react';
 import { getEstados, getMunicipiosPorEstado } from '../../services/ubicacion.service';
 import { getUsuariosParaSelect } from '../../services/vendedor.service';
@@ -20,9 +19,9 @@ interface ModalEmpleadoProps {
 type ModalStep = 'form' | 'confirm-delete' | 'success' | 'success-edit' | 'success-delete';
 
 /* ══════════════════════════════════════════════════════
- *  HELPER COMPONENTS — fuera del componente principal
- *  para que React no los desmonte al re-render y el
- *  foco en los inputs sea estable.
+ *  HELPER COMPONENTS — definidos FUERA del componente
+ *  principal para que React no los desmonte al re-render
+ *  y el foco en los inputs sea estable.
  * ══════════════════════════════════════════════════════ */
 
 const sectionStyle = {
@@ -110,7 +109,7 @@ function DropItem({ selected, onClick, children }: { selected?: boolean; onClick
             transition: 'background .13s',
         }}
         onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'rgba(204,85,255,0.08)'; }}
-        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = selected ? '#ffe144' : 'transparent'; }}
+        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
         >
         {children}
         {selected && <Check size={13} />}
@@ -149,7 +148,10 @@ function CustomDrop({ show, onToggle, disabled, placeholder, selected, children 
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {selected ?? placeholder}
         </span>
-        <ChevronDown size={15} style={{ flexShrink: 0, color: 'rgba(26,0,96,0.35)', transition: 'transform .2s', transform: show ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown
+        size={15}
+        style={{ flexShrink: 0, color: 'rgba(26,0,96,0.35)', transition: 'transform .2s', transform: show ? 'rotate(180deg)' : 'none' }}
+        />
         </button>
         <AnimatePresence>
         {show && (
@@ -228,6 +230,7 @@ export default function ModalEmpleado({
                 setCalleYNumero(empleadoAEditar.calle_y_numero   || '');
                 setColonia(empleadoAEditar.colonia               || '');
                 setCodigoPostal(empleadoAEditar.codigo_postal    || '');
+
                 const idEst = empleadoAEditar.municipio?.estado?.id_estado;
                 const idMun = empleadoAEditar.municipio?.id_municipio;
                 if (idEst) {
@@ -262,7 +265,9 @@ export default function ModalEmpleado({
 
     const cargarCatalogosBase = async () => {
         try {
-            const [dataEstados, dataUsuarios] = await Promise.all([getEstados(), getUsuariosParaSelect()]);
+            const [dataEstados, dataUsuarios] = await Promise.all([
+                getEstados(), getUsuariosParaSelect()
+            ]);
             setEstados(dataEstados);
             setUsuariosLista(dataUsuarios);
         } catch (err) { console.error(err); }
@@ -277,10 +282,10 @@ export default function ModalEmpleado({
     const validate = () => {
         const errs: Record<string, string> = {};
         const emailRegex = /^[^\s@]+@(gmail\.com|hotmail\.com|outlook\.com|yahoo\.com|icloud\.com|live\.com)$/i;
-        if (!nombreCompleto.trim())                 errs.nombre   = 'El nombre es requerido';
-        if (!emailRegex.test(email))                errs.email    = 'Usa un correo válido (@gmail, @hotmail, etc.)';
-        if (telefono && !/^\d{10}$/.test(telefono)) errs.telefono = 'El teléfono debe tener 10 dígitos';
-        if (!usuarioId && !esEdicion)               errs.usuario  = 'Enlaza un usuario del sistema';
+        if (!nombreCompleto.trim())                       errs.nombre   = 'El nombre es requerido';
+        if (!emailRegex.test(email))                      errs.email    = 'Usa un correo válido (@gmail, @hotmail, etc.)';
+        if (telefono && !/^\d{10}$/.test(telefono))       errs.telefono = 'El teléfono debe tener 10 dígitos';
+        if (!usuarioId && !esEdicion)                     errs.usuario  = 'Enlaza un usuario del sistema';
         setErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -302,6 +307,7 @@ export default function ModalEmpleado({
                 municipio_id:    municipioId ? Number(municipioId) : undefined,
             };
             if (!esEdicion) payload.usuario_id = Number(usuarioId);
+
             await onSave(payload);
             setStep(esEdicion ? 'success-edit' : 'success');
             setTimeout(() => { onClose(); setStep('form'); }, 2200);
@@ -329,15 +335,15 @@ export default function ModalEmpleado({
     };
 
     /* ── Filtered lists ── */
-    const estadosFiltrados  = estados.filter(e    => e.nombre.toLowerCase().includes(searchEstado.toLowerCase()));
-    const munFiltrados      = municipios.filter(m  => m.nombre.toLowerCase().includes(searchMun.toLowerCase()));
+    const estadosFiltrados  = estados.filter(e  => e.nombre.toLowerCase().includes(searchEstado.toLowerCase()));
+    const munFiltrados      = municipios.filter(m => m.nombre.toLowerCase().includes(searchMun.toLowerCase()));
     const usuariosFiltrados = usuariosLista.filter(u =>
     u.username.toLowerCase().includes(searchUsuario.toLowerCase()) ||
     String(u.id_usuario).includes(searchUsuario)
     );
 
-    const estadoSelected  = estados.find(e     => e.id_estado    === estadoId);
-    const munSelected     = municipios.find(m   => m.id_municipio === municipioId);
+    const estadoSelected  = estados.find(e    => e.id_estado    === estadoId);
+    const munSelected     = municipios.find(m  => m.id_municipio === municipioId);
     const usuarioSelected = usuariosLista.find(u => u.id_usuario  === usuarioId);
 
     return (
@@ -345,32 +351,30 @@ export default function ModalEmpleado({
         <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
 
-            .memp-overlay {
+            .me-overlay {
                 position: fixed; inset: 0; z-index: 50;
                 display: flex; align-items: flex-start; justify-content: center;
                 padding: 10px 12px;
                 font-family: 'DM Sans', sans-serif;
                 overflow-y: auto;
             }
-            .memp-backdrop {
+            .me-backdrop {
                 position: fixed; inset: 0;
                 background: rgba(26,0,96,0.45);
                 backdrop-filter: blur(6px);
             }
-            .memp-modal {
+            .me-modal {
                 position: relative; z-index: 2;
                 background: #fff;
                 border: 3px solid #1a0060;
                 border-radius: 22px;
-                width: 100%; max-width: 560px;
+                width: 100%; max-width: 600px;
                 box-shadow: 6px 6px 0px #1a0060;
                 display: flex; flex-direction: column;
                 max-height: calc(100dvh - 20px);
                 margin: 0 auto;
             }
-
-            /* Drag handle */
-            .memp-drag-handle {
+            .me-drag-handle {
                 display: flex; align-items: center; justify-content: space-between;
                 padding: 12px 18px;
                 border-bottom: 2px solid rgba(26,0,96,0.1);
@@ -379,41 +383,39 @@ export default function ModalEmpleado({
                 cursor: grab; flex-shrink: 0;
                 user-select: none;
             }
-            .memp-drag-handle:active { cursor: grabbing; }
-            .memp-drag-left  { display: flex; align-items: center; gap: 10px; pointer-events: none; }
-            .memp-drag-icon  {
+            .me-drag-handle:active { cursor: grabbing; }
+            .me-drag-left  { display: flex; align-items: center; gap: 10px; pointer-events: none; }
+            .me-drag-icon  {
                 width: 36px; height: 36px; border-radius: 11px;
                 display: flex; align-items: center; justify-content: center; flex-shrink: 0;
             }
-            .memp-drag-title {
+            .me-drag-title {
                 font-family: 'Syne', sans-serif; font-weight: 900; font-size: 14px;
                 color: #1a0060; text-transform: uppercase; letter-spacing: .05em; line-height: 1.1;
             }
-            .memp-drag-sub {
+            .me-drag-sub {
                 font-size: 10px; font-weight: 500; color: rgba(26,0,96,0.45);
                 display: block; margin-top: 1px;
             }
-            .memp-drag-grip { display: flex; align-items: center; gap: 6px; }
-            .memp-close-btn {
+            .me-drag-grip  { display: flex; align-items: center; gap: 6px; }
+            .me-close-btn  {
                 width: 32px; height: 32px; border-radius: 9px;
                 border: 2px solid rgba(26,0,96,0.15); background: rgba(255,255,255,0.8);
                 display: flex; align-items: center; justify-content: center;
                 cursor: pointer; color: rgba(26,0,96,0.5); pointer-events: auto;
                 transition: background .18s, color .18s, border-color .18s;
             }
-            .memp-close-btn:hover { background: #ff5050; color: #fff; border-color: #ff5050; }
+            .me-close-btn:hover { background: #ff5050; color: #fff; border-color: #ff5050; }
 
-            /* Body */
-            .memp-body {
+            .me-body {
                 flex: 1; overflow-y: auto; padding: 14px 16px;
                 display: flex; flex-direction: column; gap: 12px;
                 scrollbar-width: thin; scrollbar-color: rgba(204,85,255,0.3) transparent;
             }
-            .memp-body::-webkit-scrollbar       { width: 4px; }
-            .memp-body::-webkit-scrollbar-thumb { background: rgba(204,85,255,0.3); border-radius: 4px; }
+            .me-body::-webkit-scrollbar       { width: 4px; }
+            .me-body::-webkit-scrollbar-thumb { background: rgba(204,85,255,0.3); border-radius: 4px; }
 
-            /* Footer */
-            .memp-footer {
+            .me-footer {
                 padding: 12px 16px;
                 border-top: 2px solid rgba(26,0,96,0.08);
                 background: rgba(237,233,254,0.4);
@@ -421,9 +423,7 @@ export default function ModalEmpleado({
                 flex-shrink: 0;
                 display: flex; flex-direction: column; gap: 8px;
             }
-
-            /* Save button */
-            .memp-save-btn {
+            .me-save-btn {
                 width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
                 background: #1a0060; color: #ffe144;
                 font-family: 'Syne', sans-serif; font-weight: 900; font-size: 14px;
@@ -432,13 +432,12 @@ export default function ModalEmpleado({
                 cursor: pointer; box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
                 transition: transform .12s, box-shadow .12s;
             }
-            .memp-save-btn.edit { background: #cc55ff; color: #fff; border-color: #1a0060; }
-            .memp-save-btn:hover:not(:disabled)  { transform: translate(-2px,-2px); box-shadow: 6px 6px 0px rgba(0,0,0,0.3); }
-            .memp-save-btn:active:not(:disabled) { transform: translate(2px,2px);   box-shadow: 2px 2px 0px rgba(0,0,0,0.25); }
-            .memp-save-btn:disabled { opacity: .7; cursor: not-allowed; }
+            .me-save-btn.edit { background: #cc55ff; color: #fff; border-color: #1a0060; }
+            .me-save-btn:hover:not(:disabled)  { transform: translate(-2px,-2px); box-shadow: 6px 6px 0px rgba(0,0,0,0.3); }
+            .me-save-btn:active:not(:disabled) { transform: translate(2px,2px);   box-shadow: 2px 2px 0px rgba(0,0,0,0.25); }
+            .me-save-btn:disabled { opacity: .7; cursor: not-allowed; }
 
-            /* Delete button */
-            .memp-delete-btn {
+            .me-delete-btn {
                 width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
                 background: none; color: rgba(255,80,80,0.8);
                 font-family: 'Syne', sans-serif; font-weight: 800; font-size: 12px;
@@ -446,54 +445,41 @@ export default function ModalEmpleado({
                 border: 2px solid rgba(255,80,80,0.25); border-radius: 12px; padding: 10px;
                 cursor: pointer; transition: background .18s, color .18s, border-color .18s;
             }
-            .memp-delete-btn:hover { background: rgba(255,80,80,0.08); color: #ff5050; border-color: rgba(255,80,80,0.45); }
+            .me-delete-btn:hover { background: rgba(255,80,80,0.08); color: #ff5050; border-color: rgba(255,80,80,0.45); }
 
-            @keyframes memp-spin { to { transform: rotate(360deg); } }
-            .memp-spinner { display: inline-block; animation: memp-spin 1s linear infinite; }
+            @keyframes me-spin { to { transform: rotate(360deg); } }
+            .me-spinner { display: inline-block; animation: me-spin 1s linear infinite; }
 
-            /* Submit error */
-            .memp-submit-error {
-                background: #ffe5e8; border: 2px solid #ff4d6d; border-radius: 12px;
-                padding: 10px 14px; color: #c1002b; font-size: 12px; font-weight: 600;
-                display: flex; align-items: center; gap: 8px;
-            }
-
-            /* Grid */
-            .memp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .memp-full  { grid-column: 1 / -1; }
-            @media (max-width: 520px) { .memp-grid2 { grid-template-columns: 1fr; } }
-
-            /* Centered screens */
-            .memp-centered {
+            .me-centered {
                 padding: 40px 24px;
                 display: flex; flex-direction: column; align-items: center;
                 gap: 14px; text-align: center;
             }
-            .memp-big-icon {
+            .me-big-icon {
                 width: 72px; height: 72px; border-radius: 22px;
                 display: flex; align-items: center; justify-content: center;
             }
-            .memp-screen-title {
+            .me-screen-title {
                 font-family: 'Syne', sans-serif; font-weight: 900; font-size: 20px; color: #1a0060;
             }
-            .memp-screen-sub {
+            .me-screen-sub {
                 font-size: 13px; font-weight: 500; color: rgba(26,0,96,0.5);
                 max-width: 300px; line-height: 1.55;
             }
-            .memp-name-chip {
+            .me-name-chip {
                 border-radius: 10px; padding: 8px 16px;
                 font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px;
             }
-            .memp-confirm-btns { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
-            .memp-btn-cancel {
+            .me-confirm-btns { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
+            .me-btn-cancel {
                 flex: 1; background: none; border: 2.5px solid rgba(26,0,96,0.18);
                 border-radius: 12px; padding: 12px;
                 font-family: 'Syne', sans-serif; font-weight: 800; font-size: 12px;
                 text-transform: uppercase; color: rgba(26,0,96,0.5); cursor: pointer;
                 transition: background .18s, color .18s;
             }
-            .memp-btn-cancel:hover { background: rgba(26,0,96,0.05); color: #1a0060; }
-            .memp-btn-delete-confirm {
+            .me-btn-cancel:hover { background: rgba(26,0,96,0.05); color: #1a0060; }
+            .me-btn-delete-confirm {
                 flex: 1; background: #ff5050; border: 2.5px solid #1a0060;
                 border-radius: 12px; padding: 12px;
                 font-family: 'Syne', sans-serif; font-weight: 900; font-size: 12px;
@@ -501,21 +487,30 @@ export default function ModalEmpleado({
                 box-shadow: 3px 3px 0px #1a0060;
                 transition: transform .12s, box-shadow .12s;
             }
-            .memp-btn-delete-confirm:hover    { transform: translate(-1px,-1px); box-shadow: 5px 5px 0px #1a0060; }
-            .memp-btn-delete-confirm:disabled { opacity: .7; cursor: not-allowed; }
+            .me-btn-delete-confirm:hover    { transform: translate(-1px,-1px); box-shadow: 5px 5px 0px #1a0060; }
+            .me-btn-delete-confirm:disabled { opacity: .7; cursor: not-allowed; }
+
+            .me-submit-error {
+                background: #ffe5e8; border: 2px solid #ff4d6d; border-radius: 12px;
+                padding: 10px 14px; color: #c1002b; font-size: 12px; font-weight: 600;
+                display: flex; align-items: center; gap: 8px;
+            }
+            .me-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .me-full  { grid-column: 1 / -1; }
+            @media (max-width: 520px) { .me-grid2 { grid-template-columns: 1fr; } }
             `}</style>
 
             <AnimatePresence>
             {isOpen && (
-                <div className="memp-overlay">
+                <div className="me-overlay">
                 <motion.div
-                className="memp-backdrop"
+                className="me-backdrop"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 onClick={() => step === 'form' ? onClose() : undefined}
                 />
 
                 <motion.div
-                className="memp-modal"
+                className="me-modal"
                 drag dragControls={dragControls} dragListener={false} dragMomentum={false}
                 initial={{ opacity: 0, scale: 0.88, y: 24 }}
                 animate={{ opacity: 1, scale: 1,    y: 0  }}
@@ -524,13 +519,13 @@ export default function ModalEmpleado({
                 >
                 {/* ── Header arrastrable ── */}
                 <div
-                className="memp-drag-handle"
+                className="me-drag-handle"
                 onPointerDown={e => dragControls.start(e)}
                 style={{ touchAction: 'none' }}
                 >
-                <div className="memp-drag-left">
+                <div className="me-drag-left">
                 <div
-                className="memp-drag-icon"
+                className="me-drag-icon"
                 style={{
                     background: step === 'confirm-delete' ? 'rgba(255,80,80,0.1)' : esEdicion ? 'rgba(204,85,255,0.12)' : 'rgba(6,214,160,0.12)',
                         border: `1.5px solid ${step === 'confirm-delete' ? 'rgba(255,80,80,0.25)' : esEdicion ? 'rgba(204,85,255,0.2)' : 'rgba(6,214,160,0.2)'}`,
@@ -543,29 +538,29 @@ export default function ModalEmpleado({
                 }
                 </div>
                 <div>
-                <p className="memp-drag-title">
-                {step === 'confirm-delete'   ? 'Eliminar empleado'
+                <p className="me-drag-title">
+                {step === 'confirm-delete' ? 'Eliminar empleado'
                     : step.startsWith('success') ? '¡Listo!'
-                    : esEdicion              ? 'Editar empleado'
+                    : esEdicion ? 'Editar empleado'
             : 'Nuevo empleado'}
             </p>
-            <span className="memp-drag-sub">
-            {step === 'confirm-delete'   ? 'Esta acción no se puede deshacer'
+            <span className="me-drag-sub">
+            {step === 'confirm-delete' ? 'Esta acción no se puede deshacer'
                 : step.startsWith('success') ? 'Operación completada'
-                : esEdicion              ? 'Modifica los datos del empleado'
+                : esEdicion ? 'Modifica los datos del empleado'
             : 'Registra un nuevo empleado en el sistema'}
             </span>
             </div>
             </div>
-            <div className="memp-drag-grip">
+            <div className="me-drag-grip">
             <GripHorizontal size={16} style={{ color: 'rgba(26,0,96,0.25)' }} />
-            <button className="memp-close-btn" onClick={onClose} onPointerDown={e => e.stopPropagation()} type="button">
+            <button className="me-close-btn" onClick={onClose} onPointerDown={e => e.stopPropagation()} type="button">
             <X size={16} />
             </button>
             </div>
             </div>
 
-            {/* ── Contenido ── */}
+            {/* ── Contenido con transiciones por step ── */}
             <AnimatePresence mode="wait">
 
             {/* ════ FORM ════ */}
@@ -579,15 +574,16 @@ export default function ModalEmpleado({
                 transition={{ duration: .22 }}
                 style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
                 >
-                <div className="memp-body">
+                <div className="me-body">
 
                 {/* Sección 1: Datos personales */}
                 <div style={sectionStyle}>
                 <p style={sectionHeadStyle('#cc55ff')}>
                 <Briefcase size={13} /> Datos personales
                 </p>
-                <div className="memp-grid2">
-                <div className="memp-full">
+                <div className="me-grid2">
+
+                <div className="me-full">
                 <FieldLabel icon={<User size={13} />}>Nombre completo</FieldLabel>
                 <FieldInput
                 type="text" required disabled={loading}
@@ -635,7 +631,7 @@ export default function ModalEmpleado({
 
                 {/* Usuario del sistema — solo en creación */}
                 {!esEdicion && (
-                    <div className="memp-full">
+                    <div className="me-full">
                     <FieldLabel icon={<User size={13} />}>Enlazar con usuario del sistema</FieldLabel>
                     <CustomDrop
                     show={showUsuarioDrop}
@@ -674,8 +670,9 @@ export default function ModalEmpleado({
                 <p style={sectionHeadStyle('#06d6a0')}>
                 <MapPin size={13} /> Dirección (opcional)
                 </p>
-                <div className="memp-grid2">
-                <div className="memp-full">
+                <div className="me-grid2">
+
+                <div className="me-full">
                 <FieldLabel icon={<MapPin size={13} />}>Calle y número</FieldLabel>
                 <FieldInput
                 type="text" disabled={loading}
@@ -732,7 +729,7 @@ export default function ModalEmpleado({
                 </CustomDrop>
                 </div>
 
-                <div className="memp-full">
+                <div className="me-full">
                 <FieldLabel icon={<MapPin size={13} />}>Municipio</FieldLabel>
                 <CustomDrop
                 show={showMunDrop}
@@ -763,28 +760,28 @@ export default function ModalEmpleado({
                 </div>
 
                 {/* Footer */}
-                <div className="memp-footer">
+                <div className="me-footer">
                 {errors.submit && (
-                    <div className="memp-submit-error">
+                    <div className="me-submit-error">
                     <AlertTriangle size={15} /> {errors.submit}
                     </div>
                 )}
                 <motion.button
                 type="submit"
-                className={`memp-save-btn${esEdicion ? ' edit' : ''}`}
+                className={`me-save-btn${esEdicion ? ' edit' : ''}`}
                 disabled={loading}
                 whileHover={!loading ? { scale: 1.01 } : {}}
                 whileTap={!loading ? { scale: 0.97 } : {}}
                 >
                 {loading
-                    ? <><span className="memp-spinner"><RefreshCw size={16} /></span> Guardando...</>
+                    ? <><span className="me-spinner"><RefreshCw size={16} /></span> Guardando...</>
                     : <><Save size={16} /> {esEdicion ? 'Actualizar' : 'Guardar'} empleado</>
                 }
                 </motion.button>
                 {esEdicion && onDelete && (
                     <button
                     type="button"
-                    className="memp-delete-btn"
+                    className="me-delete-btn"
                     onClick={() => setStep('confirm-delete')}
                     disabled={loading}
                     >
@@ -804,9 +801,9 @@ export default function ModalEmpleado({
                 exit={{   opacity: 0, scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                 >
-                <div className="memp-centered">
+                <div className="me-centered">
                 <motion.div
-                className="memp-big-icon"
+                className="me-big-icon"
                 style={{ background: 'rgba(255,80,80,0.1)', border: '2px solid rgba(255,80,80,0.25)', color: '#ff5050' }}
                 initial={{ rotate: -15, scale: 0.7 }}
                 animate={{ rotate: 0,   scale: 1   }}
@@ -814,15 +811,15 @@ export default function ModalEmpleado({
                 >
                 <AlertTriangle size={30} />
                 </motion.div>
-                <p className="memp-screen-title">¿Eliminar empleado?</p>
-                <p className="memp-screen-sub">Esta acción es permanente. Se eliminarán también los datos asociados al empleado.</p>
-                <span className="memp-name-chip" style={{ background: 'rgba(255,80,80,0.08)', border: '1.5px solid rgba(255,80,80,0.2)', color: '#ff5050' }}>
+                <p className="me-screen-title">¿Eliminar empleado?</p>
+                <p className="me-screen-sub">Esta acción es permanente y no se puede deshacer. Se eliminarán también los datos asociados.</p>
+                <span className="me-name-chip" style={{ background: 'rgba(255,80,80,0.08)', border: '1.5px solid rgba(255,80,80,0.2)', color: '#ff5050' }}>
                 {nombreCompleto}
                 </span>
-                <div className="memp-confirm-btns">
-                <button className="memp-btn-cancel" onClick={() => setStep('form')}>Cancelar</button>
-                <button className="memp-btn-delete-confirm" onClick={handleDelete} disabled={loading}>
-                {loading ? <span className="memp-spinner"><RefreshCw size={14} /></span> : 'Sí, eliminar'}
+                <div className="me-confirm-btns">
+                <button className="me-btn-cancel" onClick={() => setStep('form')}>Cancelar</button>
+                <button className="me-btn-delete-confirm" onClick={handleDelete} disabled={loading}>
+                {loading ? <span className="me-spinner"><RefreshCw size={14} /></span> : 'Sí, eliminar'}
                 </button>
                 </div>
                 </div>
@@ -837,9 +834,9 @@ export default function ModalEmpleado({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 18 }}
                 >
-                <div className="memp-centered">
+                <div className="me-centered">
                 <motion.div
-                className="memp-big-icon"
+                className="me-big-icon"
                 style={{ background: 'rgba(6,214,160,0.12)', border: '2px solid rgba(6,214,160,0.25)', color: '#06d6a0' }}
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: [0, 1.25, 1], rotate: [0, 10, 0] }}
@@ -847,9 +844,9 @@ export default function ModalEmpleado({
                 >
                 <UserPlus size={34} />
                 </motion.div>
-                <p className="memp-screen-title">¡Empleado registrado!</p>
-                <p className="memp-screen-sub">{nombreCompleto} fue dado de alta correctamente en el sistema.</p>
-                <span className="memp-name-chip" style={{ background: 'rgba(6,214,160,0.1)', border: '1.5px solid rgba(6,214,160,0.3)', color: '#0a8060' }}>
+                <p className="me-screen-title">¡Empleado registrado!</p>
+                <p className="me-screen-sub">{nombreCompleto} fue dado de alta correctamente en el sistema.</p>
+                <span className="me-name-chip" style={{ background: 'rgba(6,214,160,0.1)', border: '1.5px solid rgba(6,214,160,0.3)', color: '#0a8060' }}>
                 {nombreCompleto}
                 </span>
                 </div>
@@ -864,9 +861,9 @@ export default function ModalEmpleado({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 18 }}
                 >
-                <div className="memp-centered">
+                <div className="me-centered">
                 <motion.div
-                className="memp-big-icon"
+                className="me-big-icon"
                 style={{ background: 'rgba(204,85,255,0.12)', border: '2px solid rgba(204,85,255,0.25)', color: '#cc55ff' }}
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: [0, 1.25, 1], rotate: [0, 10, 0] }}
@@ -874,9 +871,9 @@ export default function ModalEmpleado({
                 >
                 <UserCog size={34} />
                 </motion.div>
-                <p className="memp-screen-title">¡Cambios guardados!</p>
-                <p className="memp-screen-sub">Los datos de {nombreCompleto} se actualizaron correctamente.</p>
-                <span className="memp-name-chip" style={{ background: 'rgba(204,85,255,0.1)', border: '1.5px solid rgba(204,85,255,0.3)', color: '#8833cc' }}>
+                <p className="me-screen-title">¡Cambios guardados!</p>
+                <p className="me-screen-sub">Los datos de {nombreCompleto} se actualizaron correctamente.</p>
+                <span className="me-name-chip" style={{ background: 'rgba(204,85,255,0.1)', border: '1.5px solid rgba(204,85,255,0.3)', color: '#8833cc' }}>
                 {nombreCompleto}
                 </span>
                 </div>
@@ -891,9 +888,9 @@ export default function ModalEmpleado({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 18 }}
                 >
-                <div className="memp-centered">
+                <div className="me-centered">
                 <motion.div
-                className="memp-big-icon"
+                className="me-big-icon"
                 style={{ background: 'rgba(255,80,80,0.1)', border: '2px solid rgba(255,80,80,0.2)', color: '#ff5050' }}
                 initial={{ scale: 0 }}
                 animate={{ scale: [0, 1.2, 1] }}
@@ -901,8 +898,8 @@ export default function ModalEmpleado({
                 >
                 <Trash2 size={32} />
                 </motion.div>
-                <p className="memp-screen-title">Empleado eliminado</p>
-                <p className="memp-screen-sub">El registro fue eliminado permanentemente del sistema.</p>
+                <p className="me-screen-title">Empleado eliminado</p>
+                <p className="me-screen-sub">El registro fue eliminado permanentemente del sistema.</p>
                 </div>
                 </motion.div>
             )}

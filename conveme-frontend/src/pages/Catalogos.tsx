@@ -6,12 +6,12 @@ import ModalEscuela  from '../components/catalogos/ModalEscuela';
 import ModalVendedor from '../components/catalogos/ModalVendedor';
 import ModalCuentaBancaria from '../components/catalogos/ModalCuentaBancaria';
 import ModalEvento from '../components/catalogos/ModalEvento';
-import ModalEmpleado from '../components/catalogos/ModalEmpleado'; // 👈 AÑADIDO: Modal Empleado
+import ModalEmpleado from '../components/catalogos/ModalEmpleado';
 import { getEscuelas,   createEscuela,   updateEscuela,   deleteEscuela   } from '../services/escuela.service';
 import { getVendedores, createVendedor,  updateVendedor,  deleteVendedor  } from '../services/vendedor.service';
 import { getCuentasBancarias, createCuentaBancaria, updateCuentaBancaria, deleteCuentaBancaria } from '../services/cuenta-bancaria.service';
 import { getEventos, createEvento, updateEvento, deleteEvento } from '../services/evento.service';
-import { getEmpleados, createEmpleado, updateEmpleado, deleteEmpleado } from '../services/empleado.service'; // 👈 AÑADIDO: Servicios Empleado
+import { getEmpleados, createEmpleado, updateEmpleado, deleteEmpleado } from '../services/empleado.service';
 import {
     Plus, ChevronDown, School, Users, UserCheck,
     CreditCard, Calendar, ChevronRight,
@@ -46,7 +46,7 @@ const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean 
         { key: 'email',    label: 'Email'             },
     ],
     vendedores: [
-        { key: 'id_vendedor', label: 'ID'                },
+        { key: 'id_vendedor', label: 'ID'                 },
         { key: 'nombre',      label: 'Nombre Completo',  sortable: true },
         { key: 'escuela',     label: 'Escuela Asignada', sortable: true },
         { key: 'instagram',   label: 'Instagram'         },
@@ -118,7 +118,6 @@ export default function Catalogos() {
     const [isModalEventoOpen, setIsModalEventoOpen] = useState(false);
     const [eventoEditando,    setEventoEditando]    = useState<any | null>(null);
 
-    // 👈 AÑADIDO: Modales Empleados
     const [isModalEmpleadoOpen, setIsModalEmpleadoOpen] = useState(false);
     const [empleadoEditando,    setEmpleadoEditando]    = useState<any | null>(null);
 
@@ -127,7 +126,7 @@ export default function Catalogos() {
     const [datosVendedores, setDatosVendedores] = useState<any[]>([]);
     const [datosCuentas,    setDatosCuentas]    = useState<any[]>([]);
     const [datosEventos,    setDatosEventos]    = useState<any[]>([]);
-    const [datosEmpleados,  setDatosEmpleados]  = useState<any[]>([]); // 👈 AÑADIDO: Data Empleados
+    const [datosEmpleados,  setDatosEmpleados]  = useState<any[]>([]);
     const [loadingDatos,    setLoadingDatos]    = useState(false);
 
     // Search & sort
@@ -156,7 +155,7 @@ export default function Catalogos() {
         if (tabActiva === 'vendedores') cargarVendedores();
         if (tabActiva === 'cuentas')    cargarCuentas();
         if (tabActiva === 'eventos')    cargarEventos();
-        if (tabActiva === 'empleados')  cargarEmpleados(); // 👈 AÑADIDO: Cargar Empleados
+        if (tabActiva === 'empleados')  cargarEmpleados();
         setSearch(''); setSortKey(null); setSortAsc(true);
     }, [tabActiva]);
 
@@ -232,14 +231,20 @@ export default function Catalogos() {
             await cargarCuentas(); setCuentaEditando(null); setIsModalCuentaOpen(false);
         } catch (err: any) { throw err; }
     };
-    const handleOpenDeleteCuenta = async (cuenta: any) => {
-        if(window.confirm(`¿Estás seguro de que deseas eliminar la cuenta de ${cuenta.titular_cuenta}?`)) {
-            try {
-                await deleteCuentaBancaria(cuenta.id_cuenta);
-                showToast(`Cuenta eliminada`, 'delete');
-                await cargarCuentas();
-            } catch(err: any) { showToast(err.message, 'error'); }
-        }
+    const handleOpenDeleteCuenta = (cuenta: any) => {
+        setCuentaEditando(cuenta);
+        setIsModalCuentaOpen(true);
+    };
+
+    const handleConfirmDeleteCuenta = async () => {
+        if (!cuentaEditando) return;
+        try {
+            await deleteCuentaBancaria(cuentaEditando.id_cuenta);
+            showToast(`Cuenta eliminada`, 'delete');
+            await cargarCuentas();
+            setCuentaEditando(null);
+            setIsModalCuentaOpen(false);
+        } catch(err: any) { throw err; }
     };
 
     /* ══ EVENTOS CRUD ══ */
@@ -256,17 +261,23 @@ export default function Catalogos() {
             await cargarEventos(); setEventoEditando(null); setIsModalEventoOpen(false);
         } catch (err: any) { throw err; }
     };
-    const handleOpenDeleteEvento = async (evento: any) => {
-        if(window.confirm(`¿Estás seguro de que deseas eliminar el evento "${evento.nombre}"?`)) {
-            try {
-                await deleteEvento(evento.id_evento);
-                showToast(`Evento eliminado`, 'delete');
-                await cargarEventos();
-            } catch(err: any) { showToast(err.message, 'error'); }
-        }
+    const handleOpenDeleteEvento = (evento: any) => {
+        setEventoEditando(evento);
+        setIsModalEventoOpen(true);
     };
 
-    /* ══ EMPLEADOS CRUD (NUEVO) ══ */
+    const handleConfirmDeleteEvento = async () => {
+        if (!eventoEditando) return;
+        try {
+            await deleteEvento(eventoEditando.id_evento);
+            showToast(`Evento eliminado`, 'delete');
+            await cargarEventos();
+            setEventoEditando(null);
+            setIsModalEventoOpen(false);
+        } catch(err: any) { throw err; }
+    };
+
+    /* ══ EMPLEADOS CRUD ══ */
     const cargarEmpleados = async () => {
         setLoadingDatos(true);
         try { setDatosEmpleados(await getEmpleados()); }
@@ -280,14 +291,21 @@ export default function Catalogos() {
             await cargarEmpleados(); setEmpleadoEditando(null); setIsModalEmpleadoOpen(false);
         } catch (err: any) { throw err; }
     };
-    const handleOpenDeleteEmpleado = async (empleado: any) => {
-        if(window.confirm(`¿Estás seguro de que deseas eliminar al empleado "${empleado.nombre_completo}"?`)) {
-            try {
-                await deleteEmpleado(empleado.id_empleado);
-                showToast(`Empleado eliminado`, 'delete');
-                await cargarEmpleados();
-            } catch(err: any) { showToast(err.message, 'error'); }
-        }
+
+    const handleOpenDeleteEmpleado = (empleado: any) => {
+        setEmpleadoEditando(empleado);
+        setIsModalEmpleadoOpen(true);
+    };
+
+    const handleConfirmDeleteEmpleado = async () => {
+        if (!empleadoEditando) return;
+        try {
+            await deleteEmpleado(empleadoEditando.id_empleado);
+            showToast(`Empleado eliminado`, 'delete');
+            await cargarEmpleados();
+            setEmpleadoEditando(null);
+            setIsModalEmpleadoOpen(false);
+        } catch (err: any) { throw err; }
     };
 
 
@@ -296,7 +314,7 @@ export default function Catalogos() {
     : tabActiva === 'vendedores' ? datosVendedores
     : tabActiva === 'cuentas' ? datosCuentas
     : tabActiva === 'eventos' ? datosEventos
-    : tabActiva === 'empleados' ? datosEmpleados // 👈 AÑADIDO
+    : tabActiva === 'empleados' ? datosEmpleados
     : [];
 
     const datosActuales = datosTablaActual
@@ -309,7 +327,7 @@ export default function Catalogos() {
     ? [e.banco, e.titular_cuenta, e.vendedor?.nombre_completo].join(' ').toLowerCase()
     : tabActiva === 'eventos'
     ? [e.nombre, e.escuela?.nombre, e.municipio?.estado?.nombre].join(' ').toLowerCase()
-    : tabActiva === 'empleados' // 👈 AÑADIDO
+    : tabActiva === 'empleados'
     ? [e.nombre_completo, e.email, e.puesto, e.telefono].join(' ').toLowerCase()
     : '';
     return text.includes(search.toLowerCase());
@@ -339,7 +357,7 @@ export default function Catalogos() {
                 : sortKey === 'estado'  ? obj.municipio?.estado?.nombre ?? ''
                 : obj[sortKey] ?? '';
             }
-            if (tabActiva === 'empleados') { // 👈 AÑADIDO
+            if (tabActiva === 'empleados') {
                 return sortKey === 'nombre' ? obj.nombre_completo ?? ''
                 : obj[sortKey] ?? '';
             }
@@ -408,7 +426,7 @@ export default function Catalogos() {
                     } else if (tab.id === 'eventos') {
                         setEventoEditando(null);
                         setIsModalEventoOpen(true);
-                    } else if (tab.id === 'empleados') { // 👈 AÑADIDO
+                    } else if (tab.id === 'empleados') {
                         setEmpleadoEditando(null);
                         setIsModalEmpleadoOpen(true);
                     }
@@ -477,7 +495,6 @@ export default function Catalogos() {
         </div>
 
         <div className="cat-card-header-right">
-        {/* 👈 AÑADIDO: 'empleados' a la lista de búsquedas activas */}
         {['escuelas','vendedores','cuentas','eventos','empleados'].includes(tabActiva) && (
             <div className="cat-search-wrap">
             <Search size={13} />
@@ -612,7 +629,7 @@ export default function Catalogos() {
             ))
         }
 
-        {/* 👇 AÑADIDO: Empleados rows */}
+        {/* Empleados rows */}
         {!loadingDatos && tabActiva === 'empleados' && datosActuales.length > 0 &&
             datosActuales.map((empleado, i) => (
                 <motion.tr key={empleado.id_empleado} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
@@ -645,7 +662,6 @@ export default function Catalogos() {
             <p className="cat-empty-sub">
             {search ? `No se encontraron ${tabActual.label.toLowerCase()} con "${search}".` : `No hay ${tabActual.label.toLowerCase()} registrados. Usa "Añadir registro" para crear el primero.`}
             </p>
-            {/* 👈 AÑADIDO: 'empleados' a la validación de Empty State */}
             {!search && ['escuelas', 'vendedores', 'cuentas', 'eventos', 'empleados'].includes(tabActiva) && (
                 <button
                 className="cat-empty-cta"
@@ -654,7 +670,7 @@ export default function Catalogos() {
                     if (tabActiva === 'vendedores') { setVendedorEditando(null); setIsModalVendedorOpen(true); }
                     if (tabActiva === 'cuentas')    { setCuentaEditando(null);   setIsModalCuentaOpen(true);   }
                     if (tabActiva === 'eventos')    { setEventoEditando(null);   setIsModalEventoOpen(true);   }
-                    if (tabActiva === 'empleados')  { setEmpleadoEditando(null); setIsModalEmpleadoOpen(true); } // 👈 AÑADIDO
+                    if (tabActiva === 'empleados')  { setEmpleadoEditando(null); setIsModalEmpleadoOpen(true); }
                 }}
                 >
                 <Plus size={14} /> Añadir {tabActual.label.toLowerCase()}
@@ -692,21 +708,23 @@ export default function Catalogos() {
         isOpen={isModalCuentaOpen}
         onClose={() => { setIsModalCuentaOpen(false); setCuentaEditando(null); }}
         onSave={handleGuardarCuenta}
+        onDelete={cuentaEditando ? handleConfirmDeleteCuenta : undefined}
         cuentaAEditar={cuentaEditando}
         />
 
         <ModalEvento
         isOpen={isModalEventoOpen}
         onClose={() => { setIsModalEventoOpen(false); setEventoEditando(null); }}
+        onDelete={eventoEditando ? handleConfirmDeleteEvento : undefined}
         onSave={handleGuardarEvento}
         eventoAEditar={eventoEditando}
         />
 
-        {/* 👈 AÑADIDO: Componente Modal Empleado */}
         <ModalEmpleado
         isOpen={isModalEmpleadoOpen}
         onClose={() => { setIsModalEmpleadoOpen(false); setEmpleadoEditando(null); }}
         onSave={handleGuardarEmpleado}
+        onDelete={empleadoEditando ? handleConfirmDeleteEmpleado : undefined}
         empleadoAEditar={empleadoEditando}
         />
 
