@@ -28,7 +28,8 @@ export class EmpleadosResolver {
         return this.empleadosService.update(updateEmpleadoInput.id_empleado, updateEmpleadoInput);
     }
 
-    @Mutation(() => Boolean)
+    // Cambiamos Boolean por Empleado
+    @Mutation(() => Empleado)
     removeEmpleado(@Args('id_empleado', { type: () => Int }) id_empleado: number) {
         return this.empleadosService.remove(id_empleado);
     }

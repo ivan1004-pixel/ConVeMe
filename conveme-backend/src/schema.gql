@@ -69,6 +69,7 @@ type Empleado {
   codigo_postal: String
   municipio_id: Int
   municipio: Municipio
+  activo: Boolean!
 }
 
 type Vendedor {
@@ -278,7 +279,9 @@ type Evento {
   fecha_inicio: DateTime!
   fecha_fin: DateTime!
   escuela_id: Int
+  escuela: Escuela
   municipio_id: Int
+  municipio: Municipio
   costo_stand: Float
   activo: Boolean!
 }
@@ -453,7 +456,7 @@ type Mutation {
   removeEscuela(id_escuela: Int!): Escuela!
   createEmpleado(createEmpleadoInput: CreateEmpleadoInput!): Empleado!
   updateEmpleado(updateEmpleadoInput: UpdateEmpleadoInput!): Empleado!
-  removeEmpleado(id_empleado: Int!): Boolean!
+  removeEmpleado(id_empleado: Int!): Empleado!
   createVendedor(createVendedorInput: CreateVendedorInput!): Vendedor!
   updateVendedor(updateVendedorInput: UpdateVendedorInput!): Vendedor!
   removeVendedor(id_vendedor: Int!): Vendedor!
@@ -492,7 +495,7 @@ type Mutation {
   removeCorteVendedor(id_corte: Int!): Boolean!
   createCuentaBancaria(createCuentaBancariaInput: CreateCuentaBancariaInput!): CuentaBancaria!
   updateCuentaBancaria(updateCuentaBancariaInput: UpdateCuentaBancariaInput!): CuentaBancaria!
-  removeCuentaBancaria(id_cuenta: Int!): Boolean!
+  removeCuentaBancaria(id_cuenta: Int!): CuentaBancaria!
   createSaldoVendedor(createSaldoVendedorInput: CreateSaldoVendedorInput!): SaldoVendedor!
   updateSaldoVendedor(updateSaldoVendedorInput: UpdateSaldoVendedorInput!): SaldoVendedor!
   removeSaldoVendedor(id_saldo: Int!): Boolean!
@@ -501,7 +504,7 @@ type Mutation {
   removePagoVendedor(id_pago: Int!): Boolean!
   createEvento(createEventoInput: CreateEventoInput!): Evento!
   updateEvento(updateEventoInput: UpdateEventoInput!): Evento!
-  removeEvento(id_evento: Int!): Boolean!
+  removeEvento(id_evento: Int!): Evento!
   createPromocion(createPromocionInput: CreatePromocionInput!): Promocion!
   updatePromocion(updatePromocionInput: UpdatePromocionInput!): Promocion!
   removePromocion(id_promocion: Int!): Boolean!

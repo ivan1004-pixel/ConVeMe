@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import { Escuela } from '../../escuelas/escuela.entity';
+import { Municipio } from '../../municipios/municipio.entity';
 
 @ObjectType()
 @Entity('eventos')
@@ -24,14 +26,25 @@ export class Evento {
     @Column({ type: 'datetime' })
     fecha_fin: Date;
 
-    // Los dejamos como Int directo para evitar errores si aún no existen los módulos de Escuela/Municipio
     @Field(() => Int, { nullable: true })
     @Column({ nullable: true })
     escuela_id: number;
 
+    // 👇 Ya la enlazamos con Escuela
+    @Field(() => Escuela, { nullable: true })
+    @ManyToOne(() => Escuela)
+    @JoinColumn({ name: 'escuela_id' })
+    escuela: Escuela;
+
     @Field(() => Int, { nullable: true })
     @Column({ nullable: true })
     municipio_id: number;
+
+    // 👇 Ya la enlazamos con Municipio
+    @Field(() => Municipio, { nullable: true })
+    @ManyToOne(() => Municipio)
+    @JoinColumn({ name: 'municipio_id' })
+    municipio: Municipio;
 
     @Field(() => Float, { nullable: true })
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })

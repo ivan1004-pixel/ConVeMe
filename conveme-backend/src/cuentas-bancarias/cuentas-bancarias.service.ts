@@ -19,7 +19,10 @@ export class CuentasBancariasService {
     }
 
     async findAll(): Promise<CuentaBancaria[]> {
-        return this.cuentaRepository.find({ relations: ['vendedor'] });
+        return this.cuentaRepository.find({
+            where: { activa: true }, // 👈 Solo cuentas activas
+            relations: ['vendedor']
+        });
     }
 
     async findOne(id_cuenta: number): Promise<CuentaBancaria> {
@@ -32,14 +35,19 @@ export class CuentasBancariasService {
     }
 
     async update(id_cuenta: number, updateCuentaInput: UpdateCuentaBancariaInput): Promise<CuentaBancaria> {
-        const cuenta = await this.findOne(id_cuenta);
-        Object.assign(cuenta, updateCuentaInput);
+        // 👇 Usamos preload para manejar bien las llaves foráneas
+        const cuenta = await this.cuentaRepository.preload(updateCuentaInput);
+        if (!cuenta) throw new NotFoundException(`Cuenta #${id_cuenta} no encontrada`);
+
         await this.cuentaRepository.save(cuenta);
         return this.findOne(id_cuenta);
     }
 
-    async remove(id_cuenta: number): Promise<boolean> {
-        const resultado = await this.cuentaRepository.delete(id_cuenta);
-        return (resultado.affected ?? 0) > 0;
+    async remove(id_cuenta: number): Promise<CuentaBancaria> {
+        const cuenta = await this.findOne(id_cuenta);
+        // 👇 Soft Delete: Solo la apagamos
+        cuenta.activa = false;
+        await this.cuentaRepository.save(cuenta);
+        return cuenta;
     }
 }

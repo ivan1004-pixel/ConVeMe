@@ -14,7 +14,6 @@ export class Empleado {
     @Column({ unique: true })
     usuario_id: number;
 
-    // Relación Uno a Uno. Un empleado es un usuario en el sistema.
     @Field(() => Usuario, { nullable: true })
     @OneToOne(() => Usuario)
     @JoinColumn({ name: 'usuario_id' })
@@ -52,9 +51,13 @@ export class Empleado {
     @Column({ nullable: true })
     municipio_id: number;
 
-    // DOCUMENTACIÓN: Relación Muchos a Uno con Municipio
     @Field(() => Municipio, { nullable: true })
     @ManyToOne(() => Municipio)
     @JoinColumn({ name: 'municipio_id' })
     municipio: Municipio;
+
+    // 👇 AÑADIDO: Para habilitar el Soft Delete
+    @Field()
+    @Column({ default: true })
+    activo: boolean;
 }

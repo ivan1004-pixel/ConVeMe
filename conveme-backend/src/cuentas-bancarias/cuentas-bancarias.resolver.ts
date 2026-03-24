@@ -28,7 +28,8 @@ export class CuentasBancariasResolver {
         return this.cuentasBancariasService.update(updateCuentaBancariaInput.id_cuenta, updateCuentaBancariaInput);
     }
 
-    @Mutation(() => Boolean)
+    // 👇 Cambiamos Boolean por CuentaBancaria
+    @Mutation(() => CuentaBancaria)
     removeCuentaBancaria(@Args('id_cuenta', { type: () => Int }) id_cuenta: number) {
         return this.cuentasBancariasService.remove(id_cuenta);
     }

@@ -14,27 +14,38 @@ export class EventosService {
 
     async create(createEventoInput: CreateEventoInput): Promise<Evento> {
         const nuevo = this.eventoRepository.create(createEventoInput);
-        return this.eventoRepository.save(nuevo);
+        const guardado = await this.eventoRepository.save(nuevo);
+        return this.findOne(guardado.id_evento);
     }
 
     async findAll(): Promise<Evento[]> {
-        return this.eventoRepository.find();
+        return this.eventoRepository.find({
+            where: { activo: true }, // Solo eventos activos
+            relations: ['escuela', 'municipio', 'municipio.estado']
+        });
     }
 
     async findOne(id_evento: number): Promise<Evento> {
-        const evento = await this.eventoRepository.findOne({ where: { id_evento } });
+        const evento = await this.eventoRepository.findOne({
+            where: { id_evento },
+            relations: ['escuela', 'municipio', 'municipio.estado']
+        });
         if (!evento) throw new NotFoundException(`Evento #${id_evento} no encontrado`);
         return evento;
     }
 
     async update(id_evento: number, updateEventoInput: UpdateEventoInput): Promise<Evento> {
-        const evento = await this.findOne(id_evento);
-        Object.assign(evento, updateEventoInput);
-        return this.eventoRepository.save(evento);
+        const evento = await this.eventoRepository.preload(updateEventoInput);
+        if (!evento) throw new NotFoundException(`Evento #${id_evento} no encontrado`);
+
+        await this.eventoRepository.save(evento);
+        return this.findOne(id_evento);
     }
 
-    async remove(id_evento: number): Promise<boolean> {
-        const resultado = await this.eventoRepository.delete(id_evento);
-        return (resultado.affected ?? 0) > 0;
+    async remove(id_evento: number): Promise<Evento> {
+        const evento = await this.findOne(id_evento);
+        evento.activo = false; // Soft Delete
+        await this.eventoRepository.save(evento);
+        return evento;
     }
 }
