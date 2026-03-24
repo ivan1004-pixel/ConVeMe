@@ -20,6 +20,161 @@ interface ModalVendedorProps {
 
 type ModalStep = 'form' | 'confirm-delete' | 'success' | 'success-delete';
 
+/* ══════════════════════════════════════════════════════
+ *  HELPER COMPONENTS — defined OUTSIDE ModalVendedor so
+ *  React never unmounts them on parent re-render, keeping
+ *  input focus stable while the user types.
+ ═ *═════════════════════════════════════════════════════ */
+
+const sectionStyle = {
+    background:'rgba(237,233,254,0.3)',
+    border:'1.5px solid rgba(26,0,96,0.08)',
+    borderRadius:14, padding:'14px 14px 12px',
+};
+
+const sectionHeadStyle = (color: string): React.CSSProperties => ({
+    display:'flex', alignItems:'center', gap:7,
+    fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:9.5, letterSpacing:'.14em',
+    textTransform:'uppercase', color, marginBottom:8,
+});
+
+function FieldLabel({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+    return (
+        <label style={{ display:'flex', alignItems:'center', gap:5, fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'#1a0060', marginBottom:5 }}>
+        <span style={{ color:'#cc55ff', display:'flex' }}>{icon}</span>
+        {children}
+        </label>
+    );
+}
+
+function FieldInput({ error, style: extraStyle, ...props }: any) {
+    return (
+        <input
+        {...props}
+        style={{
+            width:'100%', background:'#faf5ff',
+            border:`2px solid ${error ? '#ff4d6d' : '#d4b8f0'}`,
+            borderRadius:10, padding:'8px 12px',
+            fontFamily:'DM Sans,sans-serif', fontSize:13, fontWeight:500, color:'#1a0060',
+            outline:'none', transition:'border-color .18s, box-shadow .18s, background .18s',
+            boxSizing:'border-box',
+            ...(extraStyle || {}),
+        }}
+        onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+            e.currentTarget.style.borderColor = error ? '#ff4d6d' : '#cc55ff';
+            e.currentTarget.style.boxShadow   = `0 0 0 3px rgba(204,85,255,0.12), 2px 2px 0px ${error ? '#ff4d6d' : '#1a0060'}`;
+            e.currentTarget.style.background  = '#fff';
+        }}
+        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+            e.currentTarget.style.borderColor = error ? '#ff4d6d' : '#d4b8f0';
+            e.currentTarget.style.boxShadow   = 'none';
+            e.currentTarget.style.background  = '#faf5ff';
+        }}
+        />
+    );
+}
+
+function ErrorMsg({ msg }: { msg?: string }) {
+    return msg ? <p style={{ fontSize:11, fontWeight:600, color:'#ff4d6d', marginTop:4 }}>{msg}</p> : null;
+}
+
+function DropSearch({ value, onChange, placeholder }: { value:string; onChange:(v:string)=>void; placeholder:string }) {
+    return (
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderBottom:'1.5px solid rgba(26,0,96,0.08)', background:'rgba(237,233,254,0.5)' }}>
+        <Search size={13} style={{ color:'rgba(26,0,96,0.35)', flexShrink:0 }} />
+        <input
+        autoFocus
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ flex:1, border:'none', outline:'none', background:'transparent', fontFamily:'DM Sans,sans-serif', fontSize:13, fontWeight:500, color:'#1a0060' }}
+        />
+        </div>
+    );
+}
+
+function DropList({ children }: { children: React.ReactNode }) {
+    return <div style={{ maxHeight:140, overflowY:'auto', scrollbarWidth:'thin' as any }}>{children}</div>;
+}
+
+function DropItem({ selected, onClick, children }: { selected?:boolean; onClick:()=>void; children:React.ReactNode }) {
+    return (
+        <div
+        onClick={onClick}
+        style={{
+            display:'flex', alignItems:'center', justifyContent:'space-between',
+            padding:'10px 14px', cursor:'pointer',
+            fontFamily:'DM Sans,sans-serif', fontSize:13, fontWeight:500,
+            color: selected ? '#1a0060' : 'rgba(26,0,96,0.75)',
+            borderBottom:'1px solid rgba(26,0,96,0.05)',
+            background: selected ? '#ffe144' : 'transparent',
+            transition:'background .13s',
+        }}
+        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background='rgba(204,85,255,0.08)'; }}
+        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background= selected ? '#ffe144' : 'transparent'; }}
+        >
+        {children}
+        {selected && <Check size={13} />}
+        </div>
+    );
+}
+
+function DropEmpty() {
+    return <div style={{ padding:16, textAlign:'center', fontSize:12, fontWeight:600, color:'rgba(26,0,96,0.35)' }}>Sin resultados</div>;
+}
+
+function CustomDrop({ show, onToggle, disabled, placeholder, selected, children }: {
+    show: boolean; onToggle: () => void; disabled?: boolean;
+    placeholder: string; selected?: string; children: React.ReactNode;
+}) {
+    return (
+        <div style={{ position:'relative' }}>
+        <button
+        type="button"
+        disabled={disabled}
+        onClick={onToggle}
+        style={{
+            width:'100%', background:'#faf5ff',
+            border:`2px solid ${show ? '#cc55ff' : '#d4b8f0'}`,
+            borderRadius:10, padding:'8px 12px',
+            fontFamily:'DM Sans, sans-serif', fontSize:13, fontWeight:500,
+            color: selected ? '#1a0060' : '#b9a0d4',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display:'flex', alignItems:'center', justifyContent:'space-between', gap:8,
+            outline:'none', opacity: disabled ? .55 : 1,
+            boxShadow: show ? '0 0 0 3px rgba(204,85,255,0.15), 3px 3px 0px #1a0060' : 'none',
+            transition:'border-color .18s, box-shadow .18s',
+            textAlign:'left',
+        }}
+        >
+        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+        {selected ?? placeholder}
+        </span>
+        <ChevronDown size={15} style={{ flexShrink:0, color:'rgba(26,0,96,0.35)', transition:'transform .2s', transform: show ? 'rotate(180deg)' : 'none' }} />
+        </button>
+        <AnimatePresence>
+        {show && (
+            <motion.div
+            initial={{ opacity:0, y:-8 }}
+            animate={{ opacity:1, y:0  }}
+            exit={{ opacity:0,   y:-8  }}
+            transition={{ duration:.16 }}
+            style={{
+                position:'absolute', top:'calc(100% + 6px)', left:0, right:0,
+                  background:'#fff', border:'2.5px solid #1a0060', borderRadius:14,
+                  boxShadow:'5px 5px 0px #1a0060', overflow:'hidden', zIndex:100,
+            }}
+            >
+            {children}
+            </motion.div>
+        )}
+        </AnimatePresence>
+        </div>
+    );
+}
+
+/* ══════════════════════════════════════════════════════ */
+
 export default function ModalVendedor({
     isOpen, onClose, onSave, onDelete, vendedorAEditar
 }: ModalVendedorProps) {
@@ -206,144 +361,6 @@ export default function ModalVendedor({
     const usuarioSelected = usuariosLista.find(u => u.id_usuario === usuarioId);
 
     /* ── Reusable custom dropdown ── */
-    const CustomDrop = ({
-        show, onToggle, disabled, placeholder, selected, children
-    }: {
-        show: boolean; onToggle: () => void; disabled?: boolean;
-        placeholder: string; selected?: string; children: React.ReactNode;
-    }) => (
-        <div style={{ position:'relative' }}>
-        <button
-        type="button"
-        disabled={disabled}
-        onClick={onToggle}
-        style={{
-            width:'100%', background:'#faf5ff',
-            border:`2px solid ${show ? '#cc55ff' : '#d4b8f0'}`,
-            borderRadius:10, padding:'8px 12px',
-            fontFamily:'DM Sans, sans-serif', fontSize:14, fontWeight:500,
-            color: selected ? '#1a0060' : '#b9a0d4',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            display:'flex', alignItems:'center', justifyContent:'space-between', gap:8,
-            outline:'none', opacity: disabled ? .55 : 1,
-            boxShadow: show ? '0 0 0 3px rgba(204,85,255,0.15), 3px 3px 0px #1a0060' : 'none',
-           transition:'border-color .18s, box-shadow .18s',
-           textAlign:'left',
-        }}
-        >
-        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-        {selected ?? placeholder}
-        </span>
-        <ChevronDown size={15} style={{ flexShrink:0, color:'rgba(26,0,96,0.35)', transition:'transform .2s', transform: show ? 'rotate(180deg)' : 'none' }} />
-        </button>
-        <AnimatePresence>
-        {show && (
-            <motion.div
-            initial={{ opacity:0, y:-8 }}
-            animate={{ opacity:1, y:0  }}
-            exit={{ opacity:0,   y:-8  }}
-            transition={{ duration:.16 }}
-            style={{
-                position:'absolute', top:'calc(100% + 6px)', left:0, right:0,
-                  background:'#fff', border:'2.5px solid #1a0060', borderRadius:14,
-                  boxShadow:'5px 5px 0px #1a0060', overflow:'hidden', zIndex:100,
-            }}
-            >
-            {children}
-            </motion.div>
-        )}
-        </AnimatePresence>
-        </div>
-    );
-
-    const DropSearch = ({ value, onChange, placeholder }: { value:string; onChange:(v:string)=>void; placeholder:string }) => (
-        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderBottom:'1.5px solid rgba(26,0,96,0.08)', background:'rgba(237,233,254,0.5)' }}>
-        <Search size={13} style={{ color:'rgba(26,0,96,0.35)', flexShrink:0 }} />
-        <input
-        autoFocus
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{ flex:1, border:'none', outline:'none', background:'transparent', fontFamily:'DM Sans,sans-serif', fontSize:13, fontWeight:500, color:'#1a0060' }}
-        />
-        </div>
-    );
-
-    const DropList = ({ children }: { children: React.ReactNode }) => (
-        <div style={{ maxHeight:140, overflowY:'auto', scrollbarWidth:'thin' }}>{children}</div>
-    );
-
-    const DropItem = ({ selected, onClick, children }: { selected?:boolean; onClick:()=>void; children:React.ReactNode }) => (
-        <div
-        onClick={onClick}
-        style={{
-            display:'flex', alignItems:'center', justifyContent:'space-between',
-            padding:'10px 14px', cursor:'pointer',
-            fontFamily:'DM Sans,sans-serif', fontSize:13, fontWeight:500,
-            color: selected ? '#1a0060' : 'rgba(26,0,96,0.75)',
-                                                                                                                              borderBottom:'1px solid rgba(26,0,96,0.05)',
-                                                                                                                              background: selected ? '#ffe144' : 'transparent',
-                                                                                                                              transition:'background .13s',
-        }}
-        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background='rgba(204,85,255,0.08)'; }}
-        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background='transparent'; }}
-        >
-        {children}
-        {selected && <Check size={13} />}
-        </div>
-    );
-
-    const DropEmpty = () => (
-        <div style={{ padding:16, textAlign:'center', fontSize:12, fontWeight:600, color:'rgba(26,0,96,0.35)' }}>Sin resultados</div>
-    );
-
-    const FieldLabel = ({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) => (
-        <label style={{ display:'flex', alignItems:'center', gap:5, fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:10, letterSpacing:'.1em', textTransform:'uppercase', color:'#1a0060', marginBottom:5 }}>
-        <span style={{ color:'#cc55ff', display:'flex' }}>{icon}</span>
-        {children}
-        </label>
-    );
-
-    const FieldInput = ({ error, ...props }: any) => (
-        <input
-        {...props}
-        style={{
-            width:'100%', background:'#faf5ff',
-            border:`2px solid ${error ? '#ff4d6d' : '#d4b8f0'}`,
-            borderRadius:10, padding:'8px 12px',
-            fontFamily:'DM Sans,sans-serif', fontSize:13, fontWeight:500, color:'#1a0060',
-            outline:'none', transition:'border-color .18s, box-shadow .18s, background .18s',
-            boxSizing:'border-box',
-            ...(props.style || {}),
-        }}
-        onFocus={e => {
-            e.currentTarget.style.borderColor = error ? '#ff4d6d' : '#cc55ff';
-            e.currentTarget.style.boxShadow   = `0 0 0 3px rgba(204,85,255,0.12), 2px 2px 0px ${error ? '#ff4d6d' : '#1a0060'}`;
-            e.currentTarget.style.background  = '#fff';
-        }}
-        onBlur={e => {
-            e.currentTarget.style.borderColor = error ? '#ff4d6d' : '#d4b8f0';
-            e.currentTarget.style.boxShadow   = 'none';
-            e.currentTarget.style.background  = '#faf5ff';
-        }}
-        />
-    );
-
-    const ErrorMsg = ({ msg }: { msg?: string }) =>
-    msg ? <p style={{ fontSize:11, fontWeight:600, color:'#ff4d6d', marginTop:4 }}>{msg}</p> : null;
-
-    const sectionStyle = {
-        background:'rgba(237,233,254,0.3)',
-        border:'1.5px solid rgba(26,0,96,0.08)',
-        borderRadius:14, padding:'14px 14px 12px',
-    };
-
-    const sectionHeadStyle = (color: string): React.CSSProperties => ({
-        display:'flex', alignItems:'center', gap:7,
-        fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:9.5, letterSpacing:'.14em',
-        textTransform:'uppercase', color, marginBottom:8,
-    });
-
     return (
         <>
         <style>{`
