@@ -2,41 +2,37 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserGreeting from '../components/ui/UserGreeting';
+
 import ModalEscuela  from '../components/catalogos/ModalEscuela';
 import ModalVendedor from '../components/catalogos/ModalVendedor';
 import ModalCuentaBancaria from '../components/catalogos/ModalCuentaBancaria';
 import ModalEvento from '../components/catalogos/ModalEvento';
 import ModalEmpleado from '../components/catalogos/ModalEmpleado';
-import ModalCategoria from '../components/inventario/ModalCategoria';
-import ModalProducto from '../components/inventario/ModalProducto';
-import ModalTamano from '../components/inventario/ModalTamano';
+
+import ActionModal from '../components/ui/ActionModal';
+import type { ActionType } from '../components/ui/ActionModal';
+
 import { getEscuelas,   createEscuela,   updateEscuela,   deleteEscuela   } from '../services/escuela.service';
 import { getVendedores, createVendedor,  updateVendedor,  deleteVendedor  } from '../services/vendedor.service';
 import { getCuentasBancarias, createCuentaBancaria, updateCuentaBancaria, deleteCuentaBancaria } from '../services/cuenta-bancaria.service';
 import { getEventos, createEvento, updateEvento, deleteEvento } from '../services/evento.service';
 import { getEmpleados, createEmpleado, updateEmpleado, deleteEmpleado } from '../services/empleado.service';
-import { getCategorias, createCategoria, updateCategoria, deleteCategoria } from '../services/categoria.service';
-import { getProductos, createProducto, updateProducto, deleteProducto } from '../services/producto.service';
-import { getTamanos, createTamano, updateTamano, deleteTamano } from '../services/tamano.service';
+
 import {
     Plus, ChevronDown, School, Users, UserCheck,
     CreditCard, Calendar, ChevronRight,
     Pencil, Trash2, Search, X, CheckCircle,
-    ArrowUpDown, Loader2, Tags, Package, Ruler
+    ArrowUpDown, Loader2
 } from 'lucide-react';
 
 import '../styles/Catalogos.css';
 
-/* ── Tab config ── */
 const TABS = [
     { id: 'escuelas',   label: 'Escuelas',          icon: <School     size={16} /> },
 { id: 'empleados',  label: 'Empleados',         icon: <Users      size={16} /> },
 { id: 'vendedores', label: 'Vendedores',        icon: <UserCheck  size={16} /> },
 { id: 'cuentas',    label: 'Cuentas Bancarias', icon: <CreditCard size={16} /> },
 { id: 'eventos',    label: 'Eventos',           icon: <Calendar   size={16} /> },
-{ id: 'categorias', label: 'Categorías',        icon: <Tags       size={16} /> },
-{ id: 'productos',  label: 'Productos',         icon: <Package    size={16} /> },
-{ id: 'tamanos',    label: 'Tamaños',           icon: <Ruler      size={16} /> },
 ];
 
 const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean }[]> = {
@@ -55,7 +51,7 @@ const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean 
         { key: 'email',    label: 'Email'             },
     ],
     vendedores: [
-        { key: 'id_vendedor', label: 'ID'                 },
+        { key: 'id_vendedor', label: 'ID'                },
         { key: 'nombre',      label: 'Nombre Completo',  sortable: true },
         { key: 'escuela',     label: 'Escuela Asignada', sortable: true },
         { key: 'instagram',   label: 'Instagram'         },
@@ -75,21 +71,6 @@ const COLUMNAS: Record<string, { key: string; label: string; sortable?: boolean 
         { key: 'escuela', label: 'Escuela Sede',  sortable: true },
         { key: 'estado',  label: 'Estado',        sortable: true },
     ],
-    categorias: [
-        { key: 'id_categoria', label: 'ID'            },
-        { key: 'nombre',       label: 'Nombre',        sortable: true },
-    ],
-    productos: [
-        { key: 'sku',          label: 'SKU'           },
-        { key: 'nombre',       label: 'Nombre',        sortable: true },
-        { key: 'categoria',    label: 'Categoría',     sortable: true },
-        { key: 'tamano',       label: 'Tamaño',        sortable: true },
-        { key: 'precio',       label: 'Precio',        sortable: true },
-    ],
-    tamanos: [
-        { key: 'id_tamano',    label: 'ID'            },
-        { key: 'descripcion',  label: 'Descripción',   sortable: true },
-    ],
 };
 
 interface Toast { msg: string; type: 'success' | 'delete' | 'error' }
@@ -98,20 +79,9 @@ function ToastPortal({ toast }: { toast: Toast | null }) {
     return createPortal(
         <AnimatePresence>
         {toast && (
-            <motion.div
-            className="cat-toast"
-            initial={{ opacity:0, y:-50, scale:0.9 }}
-            animate={{ opacity:1, y:0,   scale:1   }}
-            exit={{ opacity:0,  y:-40,  scale:0.9 }}
-            transition={{ type:'spring', stiffness:300, damping:22 }}
-            >
-            <span className="cat-toast-icon" style={{
-                color: toast.type === 'success' ? '#06d6a0' : '#ff5050'
-            }}>
-            {toast.type === 'success'
-                ? <CheckCircle size={16} />
-                : <Trash2 size={16} />
-            }
+            <motion.div className="cat-toast" initial={{ opacity:0, y:-50, scale:0.9 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:-40, scale:0.9 }} transition={{ type:'spring', stiffness:300, damping:22 }}>
+            <span className="cat-toast-icon" style={{ color: toast.type === 'success' ? '#06d6a0' : '#ff5050' }}>
+            {toast.type === 'success' ? <CheckCircle size={16} /> : <Trash2 size={16} />}
             </span>
             {toast.msg}
             <div className="cat-toast-bar" />
@@ -132,30 +102,28 @@ export default function Catalogos() {
     const [dropOpen,  setDropOpen]  = useState(false);
     const [addOpen,   setAddOpen]   = useState(false);
 
-    // Modales
+    // Modales de Edición/Creación
     const [isModalEscuelaOpen,  setIsModalEscuelaOpen]  = useState(false);
     const [escuelaEditando,     setEscuelaEditando]     = useState<any | null>(null);
-
     const [isModalVendedorOpen, setIsModalVendedorOpen] = useState(false);
     const [vendedorEditando,    setVendedorEditando]    = useState<any | null>(null);
-
     const [isModalCuentaOpen, setIsModalCuentaOpen] = useState(false);
     const [cuentaEditando,    setCuentaEditando]    = useState<any | null>(null);
-
     const [isModalEventoOpen, setIsModalEventoOpen] = useState(false);
     const [eventoEditando,    setEventoEditando]    = useState<any | null>(null);
-
     const [isModalEmpleadoOpen, setIsModalEmpleadoOpen] = useState(false);
     const [empleadoEditando,    setEmpleadoEditando]    = useState<any | null>(null);
 
-    const [isModalCategoriaOpen, setIsModalCategoriaOpen] = useState(false);
-    const [categoriaEditando,    setCategoriaEditando]    = useState<any | null>(null);
-
-    const [isModalProductoOpen, setIsModalProductoOpen] = useState(false);
-    const [productoEditando,    setProductoEditando]    = useState<any | null>(null);
-
-    const [isModalTamanoOpen, setIsModalTamanoOpen] = useState(false);
-    const [tamanoEditando,    setTamanoEditando]    = useState<any | null>(null);
+    // Estado del Modal de Acciones (Borrado bonito)
+    const [actionModal, setActionModal] = useState<{
+        isOpen: boolean;
+        type: ActionType;
+        title: string;
+        subtitle: string;
+        description?: string;
+        itemName?: string;
+        onConfirm?: () => Promise<void>;
+    }>({ isOpen: false, type: 'success', title: '', subtitle: '' });
 
     // Data
     const [datosEscuelas,   setDatosEscuelas]   = useState<any[]>([]);
@@ -163,9 +131,6 @@ export default function Catalogos() {
     const [datosCuentas,    setDatosCuentas]    = useState<any[]>([]);
     const [datosEventos,    setDatosEventos]    = useState<any[]>([]);
     const [datosEmpleados,  setDatosEmpleados]  = useState<any[]>([]);
-    const [datosCategorias, setDatosCategorias] = useState<any[]>([]);
-    const [datosProductos,  setDatosProductos]  = useState<any[]>([]);
-    const [datosTamanos,    setDatosTamanos]    = useState<any[]>([]);
     const [loadingDatos,    setLoadingDatos]    = useState(false);
 
     // Search & sort
@@ -195,9 +160,6 @@ export default function Catalogos() {
         if (tabActiva === 'cuentas')    cargarCuentas();
         if (tabActiva === 'eventos')    cargarEventos();
         if (tabActiva === 'empleados')  cargarEmpleados();
-        if (tabActiva === 'categorias') cargarCategorias();
-        if (tabActiva === 'productos')  cargarProductos();
-        if (tabActiva === 'tamanos')    cargarTamanos();
         setSearch(''); setSortKey(null); setSortAsc(true);
     }, [tabActiva]);
 
@@ -211,256 +173,68 @@ export default function Catalogos() {
         else { setSortKey(key); setSortAsc(true); }
     };
 
-    /* ══ ESCUELAS CRUD ══ */
-    const cargarEscuelas = async () => {
-        setLoadingDatos(true);
-        try { setDatosEscuelas(await getEscuelas()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
+    /* ══ CARGAR Y GUARDAR DATOS ══ */
+    const cargarEscuelas = async () => { setLoadingDatos(true); try { setDatosEscuelas(await getEscuelas()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); } };
     const handleGuardarEscuela = async (data: any) => {
         try {
-            if (escuelaEditando) { await updateEscuela({ id_escuela: escuelaEditando.id_escuela, ...data }); showToast(`"${data.nombre}" actualizada correctamente`); }
-            else { await createEscuela(data); showToast(`"${data.nombre}" creada correctamente`); }
-            await cargarEscuelas(); setEscuelaEditando(null); setIsModalEscuelaOpen(false);
-        } catch (err: any) { throw err; }
-    };
-    const handleOpenDeleteEscuela = (escuela: any) => { setEscuelaEditando(escuela); setIsModalEscuelaOpen(true); };
-    const handleConfirmDeleteEscuela = async () => {
-        if (!escuelaEditando) return;
-        try {
-            await deleteEscuela(escuelaEditando.id_escuela);
-            showToast(`"${escuelaEditando.nombre}" eliminada`, 'delete');
-            await cargarEscuelas(); setEscuelaEditando(null); setIsModalEscuelaOpen(false);
+            if (escuelaEditando) { await updateEscuela({ id_escuela: escuelaEditando.id_escuela, ...data }); } else { await createEscuela(data); }
+            await cargarEscuelas();
         } catch (err: any) { throw err; }
     };
 
-    /* ══ VENDEDORES CRUD ══ */
-    const cargarVendedores = async () => {
-        setLoadingDatos(true);
-        try { setDatosVendedores(await getVendedores()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
+    const cargarVendedores = async () => { setLoadingDatos(true); try { setDatosVendedores(await getVendedores()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); } };
     const handleGuardarVendedor = async (data: any) => {
         try {
-            if (vendedorEditando) { await updateVendedor({ id_vendedor: vendedorEditando.id_vendedor, ...data }); showToast(`"${data.nombre_completo}" actualizado correctamente`); }
-            else { await createVendedor(data); showToast(`"${data.nombre_completo}" creado correctamente`); }
-            await cargarVendedores(); setVendedorEditando(null); setIsModalVendedorOpen(false);
-        } catch (err: any) { throw err; }
-    };
-    const handleOpenDeleteVendedor = (vendedor: any) => { setVendedorEditando(vendedor); setIsModalVendedorOpen(true); };
-    const handleConfirmDeleteVendedor = async () => {
-        if (!vendedorEditando) return;
-        try {
-            await deleteVendedor(vendedorEditando.id_vendedor);
-            showToast(`"${vendedorEditando.nombre_completo}" eliminado`, 'delete');
-            await cargarVendedores(); setVendedorEditando(null); setIsModalVendedorOpen(false);
+            if (vendedorEditando) { await updateVendedor({ id_vendedor: vendedorEditando.id_vendedor, ...data }); } else { await createVendedor(data); }
+            await cargarVendedores();
         } catch (err: any) { throw err; }
     };
 
-    /* ══ CUENTAS BANCARIAS CRUD ══ */
-    const cargarCuentas = async () => {
-        setLoadingDatos(true);
-        try { setDatosCuentas(await getCuentasBancarias()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
+    const cargarCuentas = async () => { setLoadingDatos(true); try { setDatosCuentas(await getCuentasBancarias()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); } };
     const handleGuardarCuenta = async (data: any) => {
         try {
-            if (cuentaEditando) { await updateCuentaBancaria({ id_cuenta: cuentaEditando.id_cuenta, ...data }); showToast(`Cuenta de ${data.banco} actualizada`); }
-            else { await createCuentaBancaria(data); showToast(`Cuenta de ${data.banco} creada`); }
-            await cargarCuentas(); setCuentaEditando(null); setIsModalCuentaOpen(false);
+            if (cuentaEditando) { await updateCuentaBancaria({ id_cuenta: cuentaEditando.id_cuenta, ...data }); } else { await createCuentaBancaria(data); }
+            await cargarCuentas();
         } catch (err: any) { throw err; }
     };
-    const handleOpenDeleteCuenta = (cuenta: any) => { setCuentaEditando(cuenta); setIsModalCuentaOpen(true); };
-    const handleConfirmDeleteCuenta = async () => {
-        if (!cuentaEditando) return;
-        try {
-            await deleteCuentaBancaria(cuentaEditando.id_cuenta);
-            showToast(`Cuenta eliminada`, 'delete');
-            await cargarCuentas(); setCuentaEditando(null); setIsModalCuentaOpen(false);
-        } catch(err: any) { throw err; }
-    };
 
-    /* ══ EVENTOS CRUD ══ */
-    const cargarEventos = async () => {
-        setLoadingDatos(true);
-        try { setDatosEventos(await getEventos()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
+    const cargarEventos = async () => { setLoadingDatos(true); try { setDatosEventos(await getEventos()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); } };
     const handleGuardarEvento = async (data: any) => {
         try {
-            if (eventoEditando) { await updateEvento({ id_evento: eventoEditando.id_evento, ...data }); showToast(`Evento "${data.nombre}" actualizado`); }
-            else { await createEvento(data); showToast(`Evento "${data.nombre}" creado`); }
-            await cargarEventos(); setEventoEditando(null); setIsModalEventoOpen(false);
+            if (eventoEditando) { await updateEvento({ id_evento: eventoEditando.id_evento, ...data }); } else { await createEvento(data); }
+            await cargarEventos();
         } catch (err: any) { throw err; }
     };
-    const handleOpenDeleteEvento = (evento: any) => { setEventoEditando(evento); setIsModalEventoOpen(true); };
-    const handleConfirmDeleteEvento = async () => {
-        if (!eventoEditando) return;
-        try {
-            await deleteEvento(eventoEditando.id_evento);
-            showToast(`Evento eliminado`, 'delete');
-            await cargarEventos(); setEventoEditando(null); setIsModalEventoOpen(false);
-        } catch(err: any) { throw err; }
-    };
 
-    /* ══ EMPLEADOS CRUD ══ */
-    const cargarEmpleados = async () => {
-        setLoadingDatos(true);
-        try { setDatosEmpleados(await getEmpleados()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
+    const cargarEmpleados = async () => { setLoadingDatos(true); try { setDatosEmpleados(await getEmpleados()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); } };
     const handleGuardarEmpleado = async (data: any) => {
         try {
-            if (empleadoEditando) { await updateEmpleado({ id_empleado: empleadoEditando.id_empleado, ...data }); showToast(`"${data.nombre_completo}" actualizado correctamente`); }
-            else { await createEmpleado(data); showToast(`"${data.nombre_completo}" creado correctamente`); }
-            await cargarEmpleados(); setEmpleadoEditando(null); setIsModalEmpleadoOpen(false);
-        } catch (err: any) { throw err; }
-    };
-    const handleOpenDeleteEmpleado = (empleado: any) => { setEmpleadoEditando(empleado); setIsModalEmpleadoOpen(true); };
-    const handleConfirmDeleteEmpleado = async () => {
-        if (!empleadoEditando) return;
-        try {
-            await deleteEmpleado(empleadoEditando.id_empleado);
-            showToast(`Empleado eliminado`, 'delete');
-            await cargarEmpleados(); setEmpleadoEditando(null); setIsModalEmpleadoOpen(false);
-        } catch (err: any) { throw err; }
-    };
-
-    /* ══ CATEGORÍAS CRUD ══ */
-    const cargarCategorias = async () => {
-        setLoadingDatos(true);
-        try { setDatosCategorias(await getCategorias()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
-    const handleGuardarCategoria = async (data: any) => {
-        try {
-            if (categoriaEditando) { await updateCategoria({ id_categoria: categoriaEditando.id_categoria, ...data }); showToast(`"${data.nombre}" actualizada correctamente`); }
-            else { await createCategoria(data); showToast(`"${data.nombre}" creada correctamente`); }
-            await cargarCategorias(); setCategoriaEditando(null); setIsModalCategoriaOpen(false);
-        } catch (err: any) { throw err; }
-    };
-    const handleOpenDeleteCategoria = (categoria: any) => { setCategoriaEditando(categoria); setIsModalCategoriaOpen(true); };
-    const handleConfirmDeleteCategoria = async () => {
-        if (!categoriaEditando) return;
-        try {
-            await deleteCategoria(categoriaEditando.id_categoria);
-            showToast(`Categoría eliminada`, 'delete');
-            await cargarCategorias(); setCategoriaEditando(null); setIsModalCategoriaOpen(false);
-        } catch (err: any) { throw err; }
-    };
-
-    /* ══ PRODUCTOS CRUD ══ */
-    const cargarProductos = async () => {
-        setLoadingDatos(true);
-        try { setDatosProductos(await getProductos()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
-    const handleGuardarProducto = async (data: any) => {
-        try {
-            if (productoEditando) { await updateProducto({ id_producto: productoEditando.id_producto, ...data }); showToast(`"${data.nombre}" actualizado correctamente`); }
-            else { await createProducto(data); showToast(`"${data.nombre}" creado correctamente`); }
-            await cargarProductos(); setProductoEditando(null); setIsModalProductoOpen(false);
-        } catch (err: any) { throw err; }
-    };
-    const handleOpenDeleteProducto = (producto: any) => { setProductoEditando(producto); setIsModalProductoOpen(true); };
-    const handleConfirmDeleteProducto = async () => {
-        if (!productoEditando) return;
-        try {
-            await deleteProducto(productoEditando.id_producto);
-            showToast(`Producto eliminado`, 'delete');
-            await cargarProductos(); setProductoEditando(null); setIsModalProductoOpen(false);
-        } catch (err: any) { throw err; }
-    };
-
-    /* ══ TAMAÑOS CRUD ══ */
-    const cargarTamanos = async () => {
-        setLoadingDatos(true);
-        try { setDatosTamanos(await getTamanos()); } catch (err) { console.error(err); } finally { setLoadingDatos(false); }
-    };
-    const handleGuardarTamano = async (data: any) => {
-        try {
-            if (tamanoEditando) { await updateTamano({ id_tamano: tamanoEditando.id_tamano, ...data }); showToast(`"${data.descripcion}" actualizado correctamente`); }
-            else { await createTamano(data); showToast(`"${data.descripcion}" creado correctamente`); }
-            await cargarTamanos(); setTamanoEditando(null); setIsModalTamanoOpen(false);
-        } catch (err: any) { throw err; }
-    };
-    const handleOpenDeleteTamano = (tamano: any) => { setTamanoEditando(tamano); setIsModalTamanoOpen(true); };
-    const handleConfirmDeleteTamano = async () => {
-        if (!tamanoEditando) return;
-        try {
-            await deleteTamano(tamanoEditando.id_tamano);
-            showToast(`Tamaño eliminado`, 'delete');
-            await cargarTamanos(); setTamanoEditando(null); setIsModalTamanoOpen(false);
+            if (empleadoEditando) { await updateEmpleado({ id_empleado: empleadoEditando.id_empleado, ...data }); } else { await createEmpleado(data); }
+            await cargarEmpleados();
         } catch (err: any) { throw err; }
     };
 
 
     /* ── Filtered & sorted data ── */
-    const datosTablaActual = tabActiva === 'escuelas' ? datosEscuelas
-    : tabActiva === 'vendedores' ? datosVendedores
-    : tabActiva === 'cuentas' ? datosCuentas
-    : tabActiva === 'eventos' ? datosEventos
-    : tabActiva === 'empleados' ? datosEmpleados
-    : tabActiva === 'categorias' ? datosCategorias
-    : tabActiva === 'productos' ? datosProductos
-    : tabActiva === 'tamanos' ? datosTamanos
-    : [];
+    const datosTablaActual = tabActiva === 'escuelas' ? datosEscuelas : tabActiva === 'vendedores' ? datosVendedores : tabActiva === 'cuentas' ? datosCuentas : tabActiva === 'eventos' ? datosEventos : tabActiva === 'empleados' ? datosEmpleados : [];
 
     const datosActuales = datosTablaActual
     .filter(e => {
-        const text = tabActiva === 'escuelas'
-    ? [e.nombre, e.siglas, e.municipio?.nombre, e.municipio?.estado?.nombre].join(' ').toLowerCase()
-    : tabActiva === 'vendedores'
-    ? [e.nombre_completo, e.instagram_handle, e.escuela?.nombre].join(' ').toLowerCase()
-    : tabActiva === 'cuentas'
-    ? [e.banco, e.titular_cuenta, e.vendedor?.nombre_completo].join(' ').toLowerCase()
-    : tabActiva === 'eventos'
-    ? [e.nombre, e.escuela?.nombre, e.municipio?.estado?.nombre].join(' ').toLowerCase()
-    : tabActiva === 'empleados'
-    ? [e.nombre_completo, e.email, e.puesto, e.telefono].join(' ').toLowerCase()
-    : tabActiva === 'categorias'
-    ? [e.nombre].join(' ').toLowerCase()
-    : tabActiva === 'productos'
-    ? [e.sku, e.nombre, e.categoria?.nombre, e.tamano?.descripcion].join(' ').toLowerCase()
-    : tabActiva === 'tamanos'
-    ? [e.descripcion].join(' ').toLowerCase()
-    : '';
-    return text.includes(search.toLowerCase());
+        const text = tabActiva === 'escuelas' ? [e.nombre, e.siglas, e.municipio?.nombre, e.municipio?.estado?.nombre].join(' ').toLowerCase()
+        : tabActiva === 'vendedores' ? [e.nombre_completo, e.instagram_handle, e.escuela?.nombre].join(' ').toLowerCase()
+        : tabActiva === 'cuentas' ? [e.banco, e.titular_cuenta, e.vendedor?.nombre_completo].join(' ').toLowerCase()
+        : tabActiva === 'eventos' ? [e.nombre, e.escuela?.nombre, e.municipio?.estado?.nombre].join(' ').toLowerCase()
+        : tabActiva === 'empleados' ? [e.nombre_completo, e.email, e.puesto, e.telefono].join(' ').toLowerCase() : '';
+        return text.includes(search.toLowerCase());
     })
     .sort((a, b) => {
         if (!sortKey) return 0;
         const val = (obj: any) => {
-            if (tabActiva === 'escuelas') {
-                return sortKey === 'municipio' ? obj.municipio?.nombre ?? ''
-                : sortKey === 'estado'    ? obj.municipio?.estado?.nombre ?? ''
-                : obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'vendedores') {
-                return sortKey === 'escuela'    ? obj.escuela?.nombre ?? ''
-                : sortKey === 'nombre'     ? obj.nombre_completo ?? ''
-    : sortKey === 'comisiones' ? obj.comision_fija_menudeo ?? 0
-    : obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'cuentas') {
-                return sortKey === 'vendedor' ? obj.vendedor?.nombre_completo ?? ''
-                : sortKey === 'banco'    ? obj.banco ?? ''
-                : obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'eventos') {
-                return sortKey === 'nombre'  ? obj.nombre ?? ''
-                : sortKey === 'escuela' ? obj.escuela?.nombre ?? ''
-                : sortKey === 'estado'  ? obj.municipio?.estado?.nombre ?? ''
-                : obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'empleados') {
-                return sortKey === 'nombre' ? obj.nombre_completo ?? ''
-                : obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'categorias') {
-                return obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'productos') {
-                return sortKey === 'categoria' ? obj.categoria?.nombre ?? ''
-                : sortKey === 'tamano' ? obj.tamano?.descripcion ?? ''
-    : sortKey === 'precio' ? obj.precio_unitario ?? 0
-    : obj[sortKey] ?? '';
-            }
-            if (tabActiva === 'tamanos') {
-                return obj[sortKey] ?? '';
-            }
+            if (tabActiva === 'escuelas') return sortKey === 'municipio' ? obj.municipio?.nombre ?? '' : sortKey === 'estado' ? obj.municipio?.estado?.nombre ?? '' : obj[sortKey] ?? '';
+            if (tabActiva === 'vendedores') return sortKey === 'escuela' ? obj.escuela?.nombre ?? '' : sortKey === 'nombre' ? obj.nombre_completo ?? '' : sortKey === 'comisiones' ? obj.comision_fija_menudeo ?? 0 : obj[sortKey] ?? '';
+            if (tabActiva === 'cuentas') return sortKey === 'vendedor' ? obj.vendedor?.nombre_completo ?? '' : sortKey === 'banco' ? obj.banco ?? '' : obj[sortKey] ?? '';
+            if (tabActiva === 'eventos') return sortKey === 'nombre' ? obj.nombre ?? '' : sortKey === 'escuela' ? obj.escuela?.nombre ?? '' : sortKey === 'estado' ? obj.municipio?.estado?.nombre ?? '' : obj[sortKey] ?? '';
+            if (tabActiva === 'empleados') return sortKey === 'nombre' ? obj.nombre_completo ?? '' : obj[sortKey] ?? '';
             return '';
         };
         const vA = val(a), vB = val(b);
@@ -480,72 +254,31 @@ export default function Catalogos() {
         {/* ── Page header ── */}
         <div className="cat-header">
         <div className="cat-header-text">
-        <h1>Catálogos</h1>
-        <p>Administra los registros de cada categoría del sistema.</p>
+        <h1>Catálogos Maestros</h1>
+        <p>Administra los registros de personal, escuelas y eventos del sistema.</p>
         </div>
 
         {/* Add button + dropdown */}
         <div className="cat-add-wrap" ref={addRef}>
-        <motion.button
-        className="cat-add-btn"
-        onClick={() => setAddOpen(v => !v)}
-        whileHover={{ scale:1.02 }}
-        whileTap={{ scale:0.97 }}
-        >
-        <Plus size={17} />
-        Añadir registro
-        <ChevronDown size={14} style={{ transition:'transform .2s', transform: addOpen ? 'rotate(180deg)' : 'none' }} />
+        <motion.button className="cat-add-btn" onClick={() => setAddOpen(v => !v)} whileHover={{ scale:1.02 }} whileTap={{ scale:0.97 }}>
+        <Plus size={17} /> Añadir registro <ChevronDown size={14} style={{ transition:'transform .2s', transform: addOpen ? 'rotate(180deg)' : 'none' }} />
         </motion.button>
 
         <AnimatePresence>
         {addOpen && (
-            <motion.div
-            className="cat-add-dropdown"
-            initial={{ opacity:0, y:-10, scale:0.96 }}
-            animate={{ opacity:1, y:0,   scale:1    }}
-            exit={{ opacity:0,  y:-10,  scale:0.96 }}
-            transition={{ duration:.18 }}
-            >
+            <motion.div className="cat-add-dropdown" initial={{ opacity:0, y:-10, scale:0.96 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:-10, scale:0.96 }} transition={{ duration:.18 }}>
             <p className="cat-add-drop-header">¿Qué deseas registrar?</p>
             {TABS.map(tab => (
-                <button
-                key={tab.id}
-                className="cat-add-drop-item"
-                onClick={() => {
-                    setTabActiva(tab.id);
-                    setAddOpen(false);
-                    if (tab.id === 'escuelas') {
-                        setEscuelaEditando(null);
-                        setIsModalEscuelaOpen(true);
-                    } else if (tab.id === 'vendedores') {
-                        setVendedorEditando(null);
-                        setIsModalVendedorOpen(true);
-                    } else if (tab.id === 'cuentas') {
-                        setCuentaEditando(null);
-                        setIsModalCuentaOpen(true);
-                    } else if (tab.id === 'eventos') {
-                        setEventoEditando(null);
-                        setIsModalEventoOpen(true);
-                    } else if (tab.id === 'empleados') {
-                        setEmpleadoEditando(null);
-                        setIsModalEmpleadoOpen(true);
-                    } else if (tab.id === 'categorias') {
-                        setCategoriaEditando(null);
-                        setIsModalCategoriaOpen(true);
-                    } else if (tab.id === 'productos') {
-                        setProductoEditando(null);
-                        setIsModalProductoOpen(true);
-                    } else if (tab.id === 'tamanos') {
-                        setTamanoEditando(null);
-                        setIsModalTamanoOpen(true);
-                    }
-                }}
-                >
+                <button key={tab.id} className="cat-add-drop-item" onClick={() => {
+                    setTabActiva(tab.id); setAddOpen(false);
+                    if (tab.id === 'escuelas') { setEscuelaEditando(null); setIsModalEscuelaOpen(true); }
+                    else if (tab.id === 'vendedores') { setVendedorEditando(null); setIsModalVendedorOpen(true); }
+                    else if (tab.id === 'cuentas') { setCuentaEditando(null); setIsModalCuentaOpen(true); }
+                    else if (tab.id === 'eventos') { setEventoEditando(null); setIsModalEventoOpen(true); }
+                    else if (tab.id === 'empleados') { setEmpleadoEditando(null); setIsModalEmpleadoOpen(true); }
+                }}>
                 <span className="cat-add-drop-icon">{tab.icon}</span>
-                <span>
-                <span className="cat-add-drop-label">{tab.label}</span>
-                <span className="cat-add-drop-sub">Nuevo registro</span>
-                </span>
+                <span><span className="cat-add-drop-label">{tab.label}</span><span className="cat-add-drop-sub">Nuevo registro</span></span>
                 <ChevronRight size={13} className="cat-add-drop-arrow" />
                 </button>
             ))}
@@ -559,28 +292,15 @@ export default function Catalogos() {
         <div className="cat-selector-wrap" ref={selectorRef}>
         <button className="cat-selector-btn" onClick={() => setDropOpen(v => !v)}>
         <span className="cat-selector-icon">{tabActual.icon}</span>
-        <span className="cat-selector-label">
-        <span className="cat-selector-sublabel">Categoría activa</span>
-        <span className="cat-selector-name">{tabActual.label}</span>
-        </span>
+        <span className="cat-selector-label"><span className="cat-selector-sublabel">Categoría activa</span><span className="cat-selector-name">{tabActual.label}</span></span>
         <ChevronDown size={18} className={`cat-chevron${dropOpen ? ' open' : ''}`} />
         </button>
 
         <AnimatePresence>
         {dropOpen && (
-            <motion.div
-            className="cat-dropdown"
-            initial={{ opacity:0, y:-10, scale:0.97 }}
-            animate={{ opacity:1, y:0,   scale:1    }}
-            exit={{ opacity:0,  y:-10,  scale:0.97 }}
-            transition={{ duration:.2, ease:[0.22,1,0.36,1] }}
-            >
+            <motion.div className="cat-dropdown" initial={{ opacity:0, y:-10, scale:0.97 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:-10, scale:0.97 }} transition={{ duration:.2, ease:[0.22,1,0.36,1] }}>
             {TABS.map(tab => (
-                <button
-                key={tab.id}
-                className={`cat-drop-item${tabActiva === tab.id ? ' active' : ''}`}
-                onClick={() => { setTabActiva(tab.id); setDropOpen(false); }}
-                >
+                <button key={tab.id} className={`cat-drop-item${tabActiva === tab.id ? ' active' : ''}`} onClick={() => { setTabActiva(tab.id); setDropOpen(false); }}>
                 <span className="cat-drop-item-icon">{tab.icon}</span>
                 <span className="cat-drop-item-label">{tab.label}</span>
                 <ChevronRight size={14} className="cat-drop-check" />
@@ -593,9 +313,8 @@ export default function Catalogos() {
 
         {/* ── Table card ── */}
         <AnimatePresence mode="wait">
-        <motion.div key={tabActiva} className="cat-card" initial={{ opacity:0, y:18 }} animate={{ opacity:1, y:0  }} exit={{ opacity:0,   y:-10 }} transition={{ duration:.28, ease:[0.22,1,0.36,1] }}>
+        <motion.div key={tabActiva} className="cat-card" initial={{ opacity:0, y:18 }} animate={{ opacity:1, y:0  }} exit={{ opacity:0, y:-10 }} transition={{ duration:.28, ease:[0.22,1,0.36,1] }}>
 
-        {/* Card header */}
         <div className="cat-card-header">
         <div className="cat-card-header-left">
         <span className="cat-card-title-icon">{tabActual.icon}</span>
@@ -604,17 +323,11 @@ export default function Catalogos() {
         </div>
 
         <div className="cat-card-header-right">
-        {['escuelas','vendedores','cuentas','eventos','empleados','categorias','productos','tamanos'].includes(tabActiva) && (
-            <div className="cat-search-wrap">
-            <Search size={13} />
-            <input className="cat-search-input" placeholder={`Buscar ${tabActual.label.toLowerCase()}...`} value={search} onChange={e => setSearch(e.target.value)} />
-            {search && (
-                <button onClick={() => setSearch('')} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', color:'rgba(26,0,96,0.3)', padding:0 }}>
-                <X size={12} />
-                </button>
-            )}
-            </div>
-        )}
+        <div className="cat-search-wrap">
+        <Search size={13} />
+        <input className="cat-search-input" placeholder={`Buscar ${tabActual.label.toLowerCase()}...`} value={search} onChange={e => setSearch(e.target.value)} />
+        {search && <button onClick={() => setSearch('')} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', color:'rgba(26,0,96,0.3)', padding:0 }}><X size={12} /></button>}
+        </div>
         </div>
         </div>
 
@@ -625,12 +338,7 @@ export default function Catalogos() {
         <tr>
         {columnas.map(col => (
             <th key={col.key} className={col.sortable ? 'cat-th-sortable' : ''} onClick={() => col.sortable && handleSort(col.key)}>
-            {col.sortable ? (
-                <div className="cat-th-inner">
-                {col.label}
-                <ArrowUpDown size={11} className="cat-sort-icon" style={{ opacity: sortKey === col.key ? 1 : 0.35 }} />
-                </div>
-            ) : col.label}
+            {col.sortable ? <div className="cat-th-inner">{col.label} <ArrowUpDown size={11} className="cat-sort-icon" style={{ opacity: sortKey === col.key ? 1 : 0.35 }} /></div> : col.label}
             </th>
         ))}
         <th style={{ textAlign:'right', paddingRight:20 }}>Acciones</th>
@@ -646,175 +354,152 @@ export default function Catalogos() {
             <Loader2 size={18} style={{ animation:'cat-spin 1s linear infinite' }} />
             <span style={{ fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:13 }}>Cargando datos...</span>
             </div>
-            <style>{`@keyframes cat-spin{to{transform:rotate(360deg)}}`}</style>
             </td>
             </tr>
         )}
 
         {/* Escuelas rows */}
-        {!loadingDatos && tabActiva === 'escuelas' && datosActuales.length > 0 &&
-            datosActuales.map((escuela, i) => (
-                <motion.tr key={escuela.id_escuela} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{escuela.id_escuela}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{escuela.nombre}</td>
-                <td>{escuela.siglas}</td>
-                <td>{escuela.municipio?.nombre || '—'}</td>
-                <td>{escuela.municipio?.estado?.nombre || '—'}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteEscuela(escuela)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteEscuela(escuela)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
+        {!loadingDatos && tabActiva === 'escuelas' && datosActuales.map((escuela, i) => (
+            <motion.tr key={escuela.id_escuela} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
+            <td>#{escuela.id_escuela}</td>
+            <td style={{ fontWeight:600, color:'#1a0060' }}>{escuela.nombre}</td>
+            <td>{escuela.siglas}</td>
+            <td>{escuela.municipio?.nombre || '—'}</td>
+            <td>{escuela.municipio?.estado?.nombre || '—'}</td>
+            <td>
+            <div className="cat-actions">
+            <button className="cat-action-btn" title="Editar" onClick={() => { setEscuelaEditando(escuela); setIsModalEscuelaOpen(true); }}><Pencil size={13} /></button>
+            <button className="cat-action-btn danger" title="Eliminar" onClick={() => {
+                setActionModal({
+                    isOpen: true, type: 'confirm-delete', title: 'Eliminar Escuela', subtitle: '¿Eliminar escuela?',
+                    description: 'Esta acción es permanente y no se puede deshacer. Se eliminará la escuela junto con sus registros asociados.',
+                    itemName: escuela.nombre,
+                    onConfirm: async () => {
+                        await deleteEscuela(escuela.id_escuela); await cargarEscuelas();
+                        setActionModal({ isOpen: true, type: 'success-delete', title: 'Escuela eliminada', subtitle: 'El registro fue eliminado permanentemente.', itemName: '' });
+                        setTimeout(() => setActionModal(prev => ({ ...prev, isOpen: false })), 2000);
+                    }
+                });
+            }}><Trash2 size={13} /></button>
+            </div>
+            </td>
+            </motion.tr>
+        ))}
 
         {/* Vendedores rows */}
-        {!loadingDatos && tabActiva === 'vendedores' && datosActuales.length > 0 &&
-            datosActuales.map((vendedor, i) => (
-                <motion.tr key={vendedor.id_vendedor} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{vendedor.id_vendedor}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{vendedor.nombre_completo}</td>
-                <td>{vendedor.escuela?.nombre || '—'}</td>
-                <td style={{ color:'#cc55ff' }}>{vendedor.instagram_handle ? `@${vendedor.instagram_handle}` : '—'}</td>
-                <td>
-                <span style={{ background:'#06d6a0', color:'#fff', padding:'3px 8px', borderRadius:6, fontSize:11, fontWeight:800, fontFamily:'Syne,sans-serif' }}>
-                {vendedor.comision_fija_menudeo}% / {vendedor.comision_fija_mayoreo}%
-                </span>
-                </td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteVendedor(vendedor)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteVendedor(vendedor)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
+        {!loadingDatos && tabActiva === 'vendedores' && datosActuales.map((vendedor, i) => (
+            <motion.tr key={vendedor.id_vendedor} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
+            <td>#{vendedor.id_vendedor}</td>
+            <td style={{ fontWeight:600, color:'#1a0060' }}>{vendedor.nombre_completo}</td>
+            <td>{vendedor.escuela?.nombre || '—'}</td>
+            <td style={{ color:'#cc55ff' }}>{vendedor.instagram_handle ? `@${vendedor.instagram_handle}` : '—'}</td>
+            <td><span style={{ background:'#06d6a0', color:'#fff', padding:'3px 8px', borderRadius:6, fontSize:11, fontWeight:800, fontFamily:'Syne,sans-serif' }}>{vendedor.comision_fija_menudeo}% / {vendedor.comision_fija_mayoreo}%</span></td>
+            <td>
+            <div className="cat-actions">
+            <button className="cat-action-btn" title="Editar" onClick={() => { setVendedorEditando(vendedor); setIsModalVendedorOpen(true); }}><Pencil size={13} /></button>
+            <button className="cat-action-btn danger" title="Eliminar" onClick={() => {
+                setActionModal({
+                    isOpen: true, type: 'confirm-delete', title: 'Eliminar Vendedor', subtitle: '¿Eliminar vendedor?',
+                    description: 'Esta acción es permanente y no se puede deshacer.',
+                    itemName: vendedor.nombre_completo,
+                    onConfirm: async () => {
+                        await deleteVendedor(vendedor.id_vendedor); await cargarVendedores();
+                        setActionModal({ isOpen: true, type: 'success-delete', title: 'Vendedor eliminado', subtitle: 'El registro fue eliminado permanentemente.', itemName: '' });
+                        setTimeout(() => setActionModal(prev => ({ ...prev, isOpen: false })), 2000);
+                    }
+                });
+            }}><Trash2 size={13} /></button>
+            </div>
+            </td>
+            </motion.tr>
+        ))}
 
         {/* Cuentas Bancarias rows */}
-        {!loadingDatos && tabActiva === 'cuentas' && datosActuales.length > 0 &&
-            datosActuales.map((cuenta, i) => (
-                <motion.tr key={cuenta.id_cuenta} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{cuenta.id_cuenta}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{cuenta.vendedor?.nombre_completo || '—'}</td>
-                <td>
-                <span style={{ background:'#1a0060', color:'#ffe144', padding:'3px 8px', borderRadius:6, fontSize:10, fontWeight:800 }}>
-                {cuenta.banco}
-                </span>
-                </td>
-                <td>{cuenta.titular_cuenta}</td>
-                <td style={{ color: '#06d6a0', fontWeight: 600 }}>{cuenta.clabe_interbancaria || cuenta.numero_cuenta}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteCuenta(cuenta)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteCuenta(cuenta)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
+        {!loadingDatos && tabActiva === 'cuentas' && datosActuales.map((cuenta, i) => (
+            <motion.tr key={cuenta.id_cuenta} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
+            <td>#{cuenta.id_cuenta}</td>
+            <td style={{ fontWeight:600, color:'#1a0060' }}>{cuenta.vendedor?.nombre_completo || '—'}</td>
+            <td><span style={{ background:'#1a0060', color:'#ffe144', padding:'3px 8px', borderRadius:6, fontSize:10, fontWeight:800 }}>{cuenta.banco}</span></td>
+            <td>{cuenta.titular_cuenta}</td>
+            <td style={{ color: '#06d6a0', fontWeight: 600 }}>{cuenta.clabe_interbancaria || cuenta.numero_cuenta}</td>
+            <td>
+            <div className="cat-actions">
+            <button className="cat-action-btn" title="Editar" onClick={() => { setCuentaEditando(cuenta); setIsModalCuentaOpen(true); }}><Pencil size={13} /></button>
+            <button className="cat-action-btn danger" title="Eliminar" onClick={() => {
+                setActionModal({
+                    isOpen: true, type: 'confirm-delete', title: 'Eliminar Cuenta', subtitle: '¿Eliminar cuenta bancaria?',
+                    description: 'Se eliminarán los datos bancarios del sistema.',
+                    itemName: `${cuenta.banco} - ${cuenta.titular_cuenta}`,
+                    onConfirm: async () => {
+                        await deleteCuentaBancaria(cuenta.id_cuenta); await cargarCuentas();
+                        setActionModal({ isOpen: true, type: 'success-delete', title: 'Cuenta eliminada', subtitle: 'El registro fue eliminado permanentemente.', itemName: '' });
+                        setTimeout(() => setActionModal(prev => ({ ...prev, isOpen: false })), 2000);
+                    }
+                });
+            }}><Trash2 size={13} /></button>
+            </div>
+            </td>
+            </motion.tr>
+        ))}
 
         {/* Eventos rows */}
-        {!loadingDatos && tabActiva === 'eventos' && datosActuales.length > 0 &&
-            datosActuales.map((evento, i) => (
-                <motion.tr key={evento.id_evento} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{evento.id_evento}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{evento.nombre}</td>
-                <td style={{ fontSize: 12 }}>
-                <div style={{ color: '#06d6a0', fontWeight: 'bold' }}>Inicio: {formatearFecha(evento.fecha_inicio)}</div>
-                <div style={{ color: '#ff5050', fontWeight: 'bold' }}>Fin: {formatearFecha(evento.fecha_fin)}</div>
-                </td>
-                <td>{evento.escuela?.nombre || '—'}</td>
-                <td>{evento.municipio?.estado?.nombre || '—'}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteEvento(evento)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteEvento(evento)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
+        {!loadingDatos && tabActiva === 'eventos' && datosActuales.map((evento, i) => (
+            <motion.tr key={evento.id_evento} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
+            <td>#{evento.id_evento}</td>
+            <td style={{ fontWeight:600, color:'#1a0060' }}>{evento.nombre}</td>
+            <td style={{ fontSize: 12 }}>
+            <div style={{ color: '#06d6a0', fontWeight: 'bold' }}>Inicio: {formatearFecha(evento.fecha_inicio)}</div>
+            <div style={{ color: '#ff5050', fontWeight: 'bold' }}>Fin: {formatearFecha(evento.fecha_fin)}</div>
+            </td>
+            <td>{evento.escuela?.nombre || '—'}</td>
+            <td>{evento.municipio?.estado?.nombre || '—'}</td>
+            <td>
+            <div className="cat-actions">
+            <button className="cat-action-btn" title="Editar" onClick={() => { setEventoEditando(evento); setIsModalEventoOpen(true); }}><Pencil size={13} /></button>
+            <button className="cat-action-btn danger" title="Eliminar" onClick={() => {
+                setActionModal({
+                    isOpen: true, type: 'confirm-delete', title: 'Eliminar Evento', subtitle: '¿Eliminar evento?',
+                    description: 'Esta acción desactivará el evento del sistema.',
+                    itemName: evento.nombre,
+                    onConfirm: async () => {
+                        await deleteEvento(evento.id_evento); await cargarEventos();
+                        setActionModal({ isOpen: true, type: 'success-delete', title: 'Evento eliminado', subtitle: 'El registro fue desactivado.', itemName: '' });
+                        setTimeout(() => setActionModal(prev => ({ ...prev, isOpen: false })), 2000);
+                    }
+                });
+            }}><Trash2 size={13} /></button>
+            </div>
+            </td>
+            </motion.tr>
+        ))}
 
         {/* Empleados rows */}
-        {!loadingDatos && tabActiva === 'empleados' && datosActuales.length > 0 &&
-            datosActuales.map((empleado, i) => (
-                <motion.tr key={empleado.id_empleado} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{empleado.id_empleado}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{empleado.nombre_completo}</td>
-                <td>
-                <span style={{ background:'#cc55ff', color:'#fff', padding:'3px 8px', borderRadius:6, fontSize:10, fontWeight:800 }}>
-                {empleado.puesto || 'Sin puesto'}
-                </span>
-                </td>
-                <td>{empleado.telefono || '—'}</td>
-                <td style={{ color: '#1a0060', fontSize: 12 }}>{empleado.email}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteEmpleado(empleado)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteEmpleado(empleado)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
-
-        {/* Categorías rows */}
-        {!loadingDatos && tabActiva === 'categorias' && datosActuales.length > 0 &&
-            datosActuales.map((categoria, i) => (
-                <motion.tr key={categoria.id_categoria} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{categoria.id_categoria}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{categoria.nombre}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteCategoria(categoria)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteCategoria(categoria)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
-
-        {/* Productos rows */}
-        {!loadingDatos && tabActiva === 'productos' && datosActuales.length > 0 &&
-            datosActuales.map((producto, i) => (
-                <motion.tr key={producto.id_producto} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td style={{ fontWeight:600, color:'#cc55ff' }}>{producto.sku}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{producto.nombre}</td>
-                <td>
-                <span style={{ background:'#1a0060', color:'#ffe144', padding:'3px 8px', borderRadius:6, fontSize:10, fontWeight:800 }}>
-                {producto.categoria?.nombre || '—'}
-                </span>
-                </td>
-                <td>{producto.tamano?.descripcion || '—'}</td>
-                <td style={{ color: '#06d6a0', fontWeight: 600 }}>${Number(producto.precio_unitario).toFixed(2)}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteProducto(producto)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteProducto(producto)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
-
-        {/* Tamaños rows */}
-        {!loadingDatos && tabActiva === 'tamanos' && datosActuales.length > 0 &&
-            datosActuales.map((tamano, i) => (
-                <motion.tr key={tamano.id_tamano} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
-                <td>#{tamano.id_tamano}</td>
-                <td style={{ fontWeight:600, color:'#1a0060' }}>{tamano.descripcion}</td>
-                <td>
-                <div className="cat-actions">
-                <button className="cat-action-btn" title="Editar" onClick={() => handleOpenDeleteTamano(tamano)}><Pencil size={13} /></button>
-                <button className="cat-action-btn danger" title="Eliminar" onClick={() => handleOpenDeleteTamano(tamano)}><Trash2 size={13} /></button>
-                </div>
-                </td>
-                </motion.tr>
-            ))
-        }
+        {!loadingDatos && tabActiva === 'empleados' && datosActuales.map((empleado, i) => (
+            <motion.tr key={empleado.id_empleado} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0  }} transition={{ delay: i * 0.03 }}>
+            <td>#{empleado.id_empleado}</td>
+            <td style={{ fontWeight:600, color:'#1a0060' }}>{empleado.nombre_completo}</td>
+            <td><span style={{ background:'#cc55ff', color:'#fff', padding:'3px 8px', borderRadius:6, fontSize:10, fontWeight:800 }}>{empleado.puesto || 'Sin puesto'}</span></td>
+            <td>{empleado.telefono || '—'}</td>
+            <td style={{ color: '#1a0060', fontSize: 12 }}>{empleado.email}</td>
+            <td>
+            <div className="cat-actions">
+            <button className="cat-action-btn" title="Editar" onClick={() => { setEmpleadoEditando(empleado); setIsModalEmpleadoOpen(true); }}><Pencil size={13} /></button>
+            <button className="cat-action-btn danger" title="Eliminar" onClick={() => {
+                setActionModal({
+                    isOpen: true, type: 'confirm-delete', title: 'Eliminar Empleado', subtitle: '¿Eliminar empleado?',
+                    description: 'El empleado será desactivado del sistema.',
+                    itemName: empleado.nombre_completo,
+                    onConfirm: async () => {
+                        await deleteEmpleado(empleado.id_empleado); await cargarEmpleados();
+                        setActionModal({ isOpen: true, type: 'success-delete', title: 'Empleado eliminado', subtitle: 'El registro fue desactivado.', itemName: '' });
+                        setTimeout(() => setActionModal(prev => ({ ...prev, isOpen: false })), 2000);
+                    }
+                });
+            }}><Trash2 size={13} /></button>
+            </div>
+            </td>
+            </motion.tr>
+        ))}
 
         {/* Empty state */}
         {!loadingDatos && datosActuales.length === 0 && (
@@ -826,20 +511,14 @@ export default function Catalogos() {
             <p className="cat-empty-sub">
             {search ? `No se encontraron ${tabActual.label.toLowerCase()} con "${search}".` : `No hay ${tabActual.label.toLowerCase()} registrados. Usa "Añadir registro" para crear el primero.`}
             </p>
-            {!search && ['escuelas', 'vendedores', 'cuentas', 'eventos', 'empleados', 'categorias', 'productos', 'tamanos'].includes(tabActiva) && (
-                <button
-                className="cat-empty-cta"
-                onClick={() => {
+            {!search && (
+                <button className="cat-empty-cta" onClick={() => {
                     if (tabActiva === 'escuelas')   { setEscuelaEditando(null);  setIsModalEscuelaOpen(true);  }
                     if (tabActiva === 'vendedores') { setVendedorEditando(null); setIsModalVendedorOpen(true); }
                     if (tabActiva === 'cuentas')    { setCuentaEditando(null);   setIsModalCuentaOpen(true);   }
                     if (tabActiva === 'eventos')    { setEventoEditando(null);   setIsModalEventoOpen(true);   }
                     if (tabActiva === 'empleados')  { setEmpleadoEditando(null); setIsModalEmpleadoOpen(true); }
-                    if (tabActiva === 'categorias') { setCategoriaEditando(null); setIsModalCategoriaOpen(true); }
-                    if (tabActiva === 'productos')  { setProductoEditando(null); setIsModalProductoOpen(true); }
-                    if (tabActiva === 'tamanos')    { setTamanoEditando(null); setIsModalTamanoOpen(true); }
-                }}
-                >
+                }}>
                 <Plus size={14} /> Añadir {tabActual.label.toLowerCase()}
                 </button>
             )}
@@ -854,69 +533,23 @@ export default function Catalogos() {
         </motion.div>
         </AnimatePresence>
 
-        {/* ── Modales ── */}
-        <ModalEscuela
-        isOpen={isModalEscuelaOpen}
-        onClose={() => { setIsModalEscuelaOpen(false); setEscuelaEditando(null); }}
-        onSave={handleGuardarEscuela}
-        onDelete={escuelaEditando ? handleConfirmDeleteEscuela : undefined}
-        escuelaAEditar={escuelaEditando}
-        />
+        {/* ── Modales de Registro/Edición ── */}
+        <ModalEscuela isOpen={isModalEscuelaOpen} onClose={() => { setIsModalEscuelaOpen(false); setEscuelaEditando(null); }} onSave={handleGuardarEscuela} escuelaAEditar={escuelaEditando} />
+        <ModalVendedor isOpen={isModalVendedorOpen} onClose={() => { setIsModalVendedorOpen(false); setVendedorEditando(null); }} onSave={handleGuardarVendedor} vendedorAEditar={vendedorEditando} />
+        <ModalCuentaBancaria isOpen={isModalCuentaOpen} onClose={() => { setIsModalCuentaOpen(false); setCuentaEditando(null); }} onSave={handleGuardarCuenta} cuentaAEditar={cuentaEditando} />
+        <ModalEvento isOpen={isModalEventoOpen} onClose={() => { setIsModalEventoOpen(false); setEventoEditando(null); }} onSave={handleGuardarEvento} eventoAEditar={eventoEditando} />
+        <ModalEmpleado isOpen={isModalEmpleadoOpen} onClose={() => { setIsModalEmpleadoOpen(false); setEmpleadoEditando(null); }} onSave={handleGuardarEmpleado} empleadoAEditar={empleadoEditando} />
 
-        <ModalVendedor
-        isOpen={isModalVendedorOpen}
-        onClose={() => { setIsModalVendedorOpen(false); setVendedorEditando(null); }}
-        onSave={handleGuardarVendedor}
-        onDelete={vendedorEditando ? handleConfirmDeleteVendedor : undefined}
-        vendedorAEditar={vendedorEditando}
-        />
-
-        <ModalCuentaBancaria
-        isOpen={isModalCuentaOpen}
-        onClose={() => { setIsModalCuentaOpen(false); setCuentaEditando(null); }}
-        onSave={handleGuardarCuenta}
-        onDelete={cuentaEditando ? handleConfirmDeleteCuenta : undefined}
-        cuentaAEditar={cuentaEditando}
-        />
-
-        <ModalEvento
-        isOpen={isModalEventoOpen}
-        onClose={() => { setIsModalEventoOpen(false); setEventoEditando(null); }}
-        onDelete={eventoEditando ? handleConfirmDeleteEvento : undefined}
-        onSave={handleGuardarEvento}
-        eventoAEditar={eventoEditando}
-        />
-
-        <ModalEmpleado
-        isOpen={isModalEmpleadoOpen}
-        onClose={() => { setIsModalEmpleadoOpen(false); setEmpleadoEditando(null); }}
-        onSave={handleGuardarEmpleado}
-        onDelete={empleadoEditando ? handleConfirmDeleteEmpleado : undefined}
-        empleadoAEditar={empleadoEditando}
-        />
-
-        <ModalCategoria
-        isOpen={isModalCategoriaOpen}
-        onClose={() => { setIsModalCategoriaOpen(false); setCategoriaEditando(null); }}
-        onSave={handleGuardarCategoria}
-        onDelete={categoriaEditando ? handleConfirmDeleteCategoria : undefined}
-        categoriaAEditar={categoriaEditando}
-        />
-
-        <ModalProducto
-        isOpen={isModalProductoOpen}
-        onClose={() => { setIsModalProductoOpen(false); setProductoEditando(null); }}
-        onSave={handleGuardarProducto}
-        onDelete={productoEditando ? handleConfirmDeleteProducto : undefined}
-        productoAEditar={productoEditando}
-        />
-
-        <ModalTamano
-        isOpen={isModalTamanoOpen}
-        onClose={() => { setIsModalTamanoOpen(false); setTamanoEditando(null); }}
-        onSave={handleGuardarTamano}
-        onDelete={tamanoEditando ? handleConfirmDeleteTamano : undefined}
-        tamanoAEditar={tamanoEditando}
+        {/* ── Modal Universal de Confirmación y Éxito ── */}
+        <ActionModal
+        isOpen={actionModal.isOpen}
+        type={actionModal.type}
+        title={actionModal.title}
+        subtitle={actionModal.subtitle}
+        description={actionModal.description}
+        itemName={actionModal.itemName}
+        onClose={() => setActionModal({ ...actionModal, isOpen: false })}
+        onConfirm={actionModal.onConfirm}
         />
 
         </div>

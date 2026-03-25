@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Venta } from './entities/venta.entity';
@@ -13,8 +13,26 @@ export class VentasService {
     ) {}
 
     async create(createVentaInput: CreateVentaInput): Promise<Venta> {
-        const nuevaVenta = this.ventaRepository.create(createVentaInput);
+        // Validación: Una venta no puede estar vacía
+        if (!createVentaInput.detalles || createVentaInput.detalles.length === 0) {
+            throw new BadRequestException('La venta debe tener al menos un producto (detalle).');
+        }
+
+        // Calculamos el monto total en el servidor para evitar trampas en el frontend
+        let montoCalculado = 0;
+        for (const detalle of createVentaInput.detalles) {
+            montoCalculado += detalle.cantidad * detalle.precio_unitario;
+        }
+
+        // Creamos la instancia de la venta inyectándole el monto calculado
+        const nuevaVenta = this.ventaRepository.create({
+            ...createVentaInput,
+            monto_total: montoCalculado
+        });
+
+        // Al guardar, TypeORM guardará la Venta y los DetVenta automáticamente (por el cascade)
         const guardada = await this.ventaRepository.save(nuevaVenta);
+
         return this.findOne(guardada.id_venta);
     }
 
@@ -34,13 +52,18 @@ export class VentasService {
     }
 
     async update(id_venta: number, updateVentaInput: UpdateVentaInput): Promise<Venta> {
-        const venta = await this.findOne(id_venta);
-        Object.assign(venta, updateVentaInput);
+        // 👇 SOLUCIÓN: Solo le pasamos el updateVentaInput, porque ya trae el id_venta por dentro
+        const venta = await this.ventaRepository.preload(updateVentaInput);
+
+        if (!venta) throw new NotFoundException(`Venta #${id_venta} no encontrada`);
+
         await this.ventaRepository.save(venta);
         return this.findOne(id_venta);
     }
 
     async remove(id_venta: number): Promise<boolean> {
+        // En ventas, rara vez se borra permanentemente por temas contables,
+        // pero como es la función remove base, la dejaremos como la pusiste.
         const resultado = await this.ventaRepository.delete(id_venta);
         return (resultado.affected ?? 0) > 0;
     }

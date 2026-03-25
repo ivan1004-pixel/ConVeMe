@@ -5,13 +5,14 @@ import CreateUser from './pages/CreateUser';
 import DashboardHome from './pages/DashboardHome';
 import Profile from './pages/Profile';
 import Catalogos from './pages/Catalogos';
+import Inventario from './pages/Inventario';
+import POS from './pages/POS'; // 👈 Añadimos la pantalla de ventas
 import { AdminRoute } from './components/ProtectedRoute';
 import DashboardLayout from './components/ui/DashboardLayout';
-import Inventario from './pages/Inventario';
 
 function App() {
   return (
-    <Routes>import Inventario from './pages/Inventario';
+    <Routes>
     {/* 🌍 Rutas Públicas */}
     <Route path="/" element={<Home />} />
     <Route path="/login" element={<Login />} />
@@ -20,14 +21,17 @@ function App() {
     <Route element={<AdminRoute />}>
     {/* 🏗️ Todo lo que esté aquí adentro vivirá dentro del Sidebar */}
     <Route element={<DashboardLayout />}>
-
     <Route path="/dashboard" element={<DashboardHome />} />
     <Route path="/perfil" element={<Profile />} />
     <Route path="/crear-usuario" element={<CreateUser />} />
-    <Route path="/inventario" element={<Inventario />} />
-    {/* Si escribes una URL rara, te regresa al inicio */}
-    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+    {/* Tus Módulos Principales */}
     <Route path="/catalogos" element={<Catalogos />} />
+    <Route path="/inventario" element={<Inventario />} />
+    <Route path="/pos" element={<POS />} /> {/* 👈 Aquí está el Punto de Venta */}
+
+    {/* Si escribes una URL rara, te regresa al inicio (Siempre va al final) */}
+    <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Route>
     </Route>
     </Routes>
