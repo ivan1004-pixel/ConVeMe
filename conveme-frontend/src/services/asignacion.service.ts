@@ -12,12 +12,13 @@ export const getAsignaciones = async () => {
                 nombre_completo
             }
             detalles {
-                id_det_asignacion
+                id_det_asignacion  # <--- CORREGIDO (Antes decía id_det_corte)
                 cantidad_asignada
                 producto {
                     id_producto
                     nombre
                     sku
+                    precio_unitario
                 }
             }
         }
@@ -40,6 +41,20 @@ export const createAsignacion = async (input: any) => {
     const { data } = await convemeApi.post('', { query, variables: { input } });
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.createAsignacionVendedor;
+};
+
+export const updateAsignacion = async (input: any) => {
+    const query = `
+    mutation UpdateAsignacionVendedor($input: UpdateAsignacionVendedorInput!) {
+        updateAsignacionVendedor(updateAsignacionVendedorInput: $input) {
+            id_asignacion
+            estado
+        }
+    }
+    `;
+    const { data } = await convemeApi.post('', { query, variables: { input } });
+    if (data.errors) throw new Error(data.errors[0].message);
+    return data.data.updateAsignacionVendedor;
 };
 
 export const deleteAsignacion = async (id: number) => {

@@ -29,6 +29,6 @@ export class AsignacionVendedor {
 
     // DOCUMENTACIÓN: Relación en cascada para guardar la lista de productos asignados
     @Field(() => [DetAsignacion], { nullable: true })
-    @OneToMany(() => DetAsignacion, detalle => detalle.asignacion, { cascade: true })
+    @OneToMany(() => DetAsignacion, detalle => detalle.asignacion, { cascade: true, orphanedRowAction: 'delete' }) // <-- AÑADIDO: orphanedRowAction
     detalles: DetAsignacion[];
 }

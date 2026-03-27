@@ -10,7 +10,7 @@ import POS from './pages/POS'; // 👈 Añadimos la pantalla de ventas
 import { AdminRoute } from './components/ProtectedRoute';
 import DashboardLayout from './components/ui/DashboardLayout';
 import PedidosAdmin from './pages/PedidosAdmin';
-
+import CortesAdmin from './pages/CortesAdmin';
 // Y adentro de tu <Route element={<DashboardLayout />}> agrega:
 
 function App() {
@@ -28,6 +28,7 @@ function App() {
     <Route path="/perfil" element={<Profile />} />
     <Route path="/crear-usuario" element={<CreateUser />} />
     <Route path="/pedidos-admin" element={<PedidosAdmin />} />
+    <Route path="/cortes-admin" element={<CortesAdmin />} />
 
     {/* Tus Módulos Principales */}
     <Route path="/catalogos" element={<Catalogos />} />

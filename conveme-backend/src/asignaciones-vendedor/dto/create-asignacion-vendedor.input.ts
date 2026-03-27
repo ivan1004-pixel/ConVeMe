@@ -2,6 +2,10 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateDetAsignacionInput {
+    // 👇 ESTO ES LO QUE FALTABA PARA QUE GRAPHQL DEJE PASAR EL ID 👇
+    @Field(() => Int, { nullable: true })
+    id_det_asignacion?: number;
+
     @Field(() => Int)
     producto_id: number;
 
@@ -17,7 +21,6 @@ export class CreateAsignacionVendedorInput {
     @Field({ nullable: true })
     estado?: string;
 
-    // Recibimos los productos que se lleva el vendedor
     @Field(() => [CreateDetAsignacionInput])
     detalles: CreateDetAsignacionInput[];
 }

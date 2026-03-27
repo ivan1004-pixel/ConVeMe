@@ -819,6 +819,7 @@ input CreateAsignacionVendedorInput {
 }
 
 input CreateDetAsignacionInput {
+  id_det_asignacion: Int
   producto_id: Int!
   cantidad_asignada: Int!
 }
