@@ -29,7 +29,6 @@ export class AuthService {
         }
 
         // 3. Creamos el payload del JWT (los datos que irán dentro del token)
-
         const payload = {
             sub: usuario.id_usuario, // 'sub' es el estándar para el ID del sujeto
             username: usuario.username,
@@ -41,5 +40,30 @@ export class AuthService {
             token: this.jwtService.sign(payload),
             usuario,
         };
+    }
+
+    // 👇 AQUÍ ESTÁ LA NUEVA FUNCIÓN DE VALIDACIÓN PARA EL MODAL 👇
+    async validarPasswordAdmin(id_usuario: number, passwordPlana: string): Promise<boolean> {
+        try {
+            // 1. Buscamos al usuario que está intentando autorizar
+            const usuario = await this.usuariosService.findOne(id_usuario);
+
+            if (!usuario) {
+                return false;
+            }
+
+            // 2. Comparamos lo que escribió en el modal con su contraseña real encriptada
+            const isPasswordValid = await bcrypt.compare(passwordPlana, usuario.password_hash);
+
+            // 3. Si es válida y su rol es Administrador (asumiendo que 1 = Admin), retorna true
+            if (isPasswordValid && usuario.rol_id === 1) {
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            // Si hay un error (ej. el usuario fue borrado), no lo autoriza
+            return false;
+        }
     }
 }

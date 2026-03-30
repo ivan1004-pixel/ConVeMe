@@ -6,7 +6,8 @@ import DashboardHome from './pages/DashboardHome';
 import Profile from './pages/Profile';
 import Catalogos from './pages/Catalogos';
 import Inventario from './pages/Inventario';
-import POS from './pages/POS'; // 👈 Añadimos la pantalla de ventas
+import POS from './pages/POS';
+import AsignacionesAdmin from './pages/AsignacionesAdmin'
 import { AdminRoute } from './components/ProtectedRoute';
 import DashboardLayout from './components/ui/DashboardLayout';
 import PedidosAdmin from './pages/PedidosAdmin';
@@ -29,7 +30,7 @@ function App() {
     <Route path="/crear-usuario" element={<CreateUser />} />
     <Route path="/pedidos-admin" element={<PedidosAdmin />} />
     <Route path="/cortes-admin" element={<CortesAdmin />} />
-
+    <Route path="/asignaciones-admin" element={<AsignacionesAdmin />} />
     {/* Tus Módulos Principales */}
     <Route path="/catalogos" element={<Catalogos />} />
     <Route path="/inventario" element={<Inventario />} />

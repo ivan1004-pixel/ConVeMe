@@ -36,7 +36,7 @@ export default function DashboardLayout() {
         { nombre: 'Inicio',          path: '/dashboard',      icono: <Home        size={18} />, roles: [1,2,3], section: 'General'    },
         { nombre: 'Mi Perfil',       path: '/perfil',         icono: <Users       size={18} />, roles: [1,2,3], section: 'General'    },
         { nombre: 'Punto de Venta',  path: '/pos',            icono: <ShoppingCart size={18}/>, roles: [1,2],   section: 'Ventas'     },
-        { nombre: 'Mis Clientes',    path: '/clientes',       icono: <Users       size={18} />, roles: [1,2],   section: 'Ventas'     },
+        { nombre: 'Mis Clientes',    path: '/pedidos-admin',       icono: <Users       size={18} />, roles: [1,2],   section: 'Ventas'     },
         { nombre: 'Inventario',      path: '/inventario',     icono: <Package     size={18} />, roles: [1,3],   section: 'Logística'  },
         { nombre: 'Producción',      path: '/produccion',     icono: <Scissors    size={18} />, roles: [1,3],   section: 'Logística'  },
         { nombre: 'Finanzas',        path: '/finanzas',       icono: <TrendingUp  size={18} />, roles: [1],     section: 'Admin'      },

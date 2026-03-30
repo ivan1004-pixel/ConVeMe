@@ -27,25 +27,48 @@ export default function ModalAutorizacion({ isOpen, esFaltante, monto, vendedor,
         setError('');
 
         try {
-            // Simulamos la validación de contraseña de administrador
-            // IDEALMENTE: Esto debería hacer una petición a tu backend para validar la contraseña
-            const idUsuario = localStorage.getItem('usuario_id');
+            // 1. ¡AQUÍ ESTÁ LA MAGIA! Buscamos la llave correcta: 'id_usuario'
+            const idUsuarioStr = localStorage.getItem('id_usuario');
+
+            if (!idUsuarioStr) {
+                throw new Error("No se encontró tu sesión. Por favor cierra sesión y vuelve a entrar.");
+            }
+
+            const idUsuario = parseInt(idUsuarioStr, 10);
+
+            // 2. Armamos la consulta usando VARIABLES
             const query = `
-            query {
-                validarPasswordAdmin(id_usuario: ${idUsuario}, password: "${password}")
+            query ValidarPassword($id: Int!, $pass: String!) {
+                validarPasswordAdmin(id_usuario: $id, password: $pass)
             }
             `;
-            // Comenta o descomenta esto según si ya tienes este endpoint en tu backend
-            // const { data } = await convemeApi.post('', { query });
-            // if (data.errors || !data.data.validarPasswordAdmin) throw new Error("Contraseña incorrecta o permisos insuficientes.");
 
-            // Para fines prácticos mientras configuras el backend:
-            if (password !== "admin123") throw new Error("Contraseña de administrador incorrecta.");
+            // 3. Enviamos la petición
+            const { data } = await convemeApi.post('', {
+                query,
+                variables: {
+                    id: idUsuario,
+                    pass: password
+                }
+            });
 
+            // 4. Revisamos si GraphQL nos regresó un error específico
+            if (data.errors) {
+                console.error("Detalle del error GraphQL:", data.errors);
+                throw new Error(data.errors[0].message || "Error de validación en el servidor.");
+            }
+
+            // 5. Verificamos el resultado
+            if (!data.data.validarPasswordAdmin) {
+                throw new Error("Contraseña de administrador incorrecta.");
+            }
+
+            // ¡Éxito!
             await onConfirm();
             setPassword('');
         } catch (e: any) {
-            setError(e.message || "Error al validar autorización.");
+            const mensajeReal = e.response?.data?.errors?.[0]?.message || e.message;
+            setError(mensajeReal || "Error al validar autorización.");
         } finally {
             setLoading(false);
         }

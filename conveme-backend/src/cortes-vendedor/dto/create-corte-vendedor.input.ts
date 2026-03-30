@@ -2,6 +2,14 @@ import { InputType, Field, Int, Float } from '@nestjs/graphql';
 
 @InputType()
 export class CreateDetCorteInput {
+    // 👇 NUEVO: Lo hacemos opcional para que lo acepte al Editar
+    @Field(() => Int, { nullable: true })
+    id_det_corte?: number;
+
+    // 👇 NUEVO: Lo hacemos opcional por si el Frontend necesita mandarlo
+    @Field(() => Int, { nullable: true })
+    corte_id?: number;
+
     @Field(() => Int)
     producto_id: number;
 
@@ -21,7 +29,7 @@ export class CreateCorteVendedorInput {
     vendedor_id: number;
 
     @Field(() => Int)
-    asignacion_id: number; // Agregado
+    asignacion_id: number;
 
     @Field(() => Float)
     dinero_esperado: number;

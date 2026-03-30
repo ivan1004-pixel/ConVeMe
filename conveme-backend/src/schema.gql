@@ -377,6 +377,7 @@ type BitacoraAuditoria {
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
+  validarPasswordAdmin(id_usuario: Int!, password: String!): Boolean!
   paises: [Pais!]!
   pais(id_pais: Int!): Pais!
   estados: [Estado!]!
@@ -842,6 +843,8 @@ input CreateCorteVendedorInput {
 }
 
 input CreateDetCorteInput {
+  id_det_corte: Int
+  corte_id: Int
   producto_id: Int!
   cantidad_vendida: Int! = 0
   cantidad_devuelta: Int! = 0
