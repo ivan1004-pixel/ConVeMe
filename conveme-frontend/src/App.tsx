@@ -12,6 +12,7 @@ import { AdminRoute } from './components/ProtectedRoute';
 import DashboardLayout from './components/ui/DashboardLayout';
 import PedidosAdmin from './pages/PedidosAdmin';
 import CortesAdmin from './pages/CortesAdmin';
+import Produccion from './pages/Produccion';
 // Y adentro de tu <Route element={<DashboardLayout />}> agrega:
 
 function App() {
@@ -31,6 +32,8 @@ function App() {
     <Route path="/pedidos-admin" element={<PedidosAdmin />} />
     <Route path="/cortes-admin" element={<CortesAdmin />} />
     <Route path="/asignaciones-admin" element={<AsignacionesAdmin />} />
+    <Route path="/produccion" element={<Produccion />} />
+
     {/* Tus Módulos Principales */}
     <Route path="/catalogos" element={<Catalogos />} />
     <Route path="/inventario" element={<Inventario />} />

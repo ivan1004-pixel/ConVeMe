@@ -2,6 +2,13 @@ import { InputType, Field, Int, Float } from '@nestjs/graphql';
 
 @InputType()
 export class CreateDetOrdenInput {
+    // 👇 IDs opcionales para cuando editamos la orden
+    @Field(() => Int, { nullable: true })
+    id_det_orden?: number;
+
+    @Field(() => Int, { nullable: true })
+    orden_produccion_id?: number;
+
     @Field(() => Int)
     insumo_id: number;
 
@@ -23,7 +30,6 @@ export class CreateOrdenProduccionInput {
     @Field({ nullable: true })
     estado?: string;
 
-    // Recibimos la lista de insumos que se van a consumir
     @Field(() => [CreateDetOrdenInput])
     detalles: CreateDetOrdenInput[];
 }

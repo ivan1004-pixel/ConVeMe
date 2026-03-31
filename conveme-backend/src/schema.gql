@@ -788,6 +788,8 @@ input CreateOrdenProduccionInput {
 }
 
 input CreateDetOrdenInput {
+  id_det_orden: Int
+  orden_produccion_id: Int
   insumo_id: Int!
   cantidad_consumida: Float!
 }
