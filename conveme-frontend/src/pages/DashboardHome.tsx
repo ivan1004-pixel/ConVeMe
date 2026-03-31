@@ -6,6 +6,7 @@ import {
     Scissors, Star, ClipboardList, Truck, Wallet, CalendarClock
 } from 'lucide-react';
 import '../styles/DashboardHome.css';
+import DashboardPredicciones from './DashboardPredicciones';
 
 export default function DashboardHome() {
     const rolId = Number(localStorage.getItem('rol_id'));
@@ -208,6 +209,24 @@ export default function DashboardHome() {
             </motion.div>
         ))}
         </div>
+
+        {/* SECCIÓN DE PREDICCIONES (Laplace) - Solo Admin */}
+        {rolId === 1 && (
+            <motion.div
+            className="mt-12 mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.6, ease: "easeOut" }}
+            >
+            <div className="dh-section-head">
+            <p className="dh-section-title">Inteligencia de Negocio</p>
+            <span className="dh-section-count">Powered by Laplace</span>
+            </div>
+
+            <DashboardPredicciones />
+            </motion.div>
+        )}
+
         </div>
     );
 }

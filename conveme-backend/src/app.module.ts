@@ -34,6 +34,7 @@ import { VentasModule } from './ventas/ventas.module';
 import { CategoriasGastoModule } from './categorias-gasto/categorias-gasto.module';
 import { GastosOperativosModule } from './gastos-operativos/gastos-operativos.module';
 import { BitacoraAuditoriaModule } from './bitacora-auditoria/bitacora-auditoria.module';
+import { PrediccionesModule } from './predicciones/predicciones.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { BitacoraAuditoriaModule } from './bitacora-auditoria/bitacora-auditoria
     CategoriasGastoModule,
     GastosOperativosModule,
     BitacoraAuditoriaModule,
+    PrediccionesModule,
   ],
 })
 export class AppModule {}

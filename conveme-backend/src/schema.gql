@@ -374,6 +374,21 @@ type BitacoraAuditoria {
   fecha_hora: DateTime!
 }
 
+type PrediccionVentasType {
+  mes_predicho: String!
+  ventas_esperadas: Float!
+  factor_alpha: Float!
+  crecimiento_pct: Float!
+  confianza_pct: Float!
+}
+
+type PrediccionDemandaProductoType {
+  producto: String!
+  piezas_necesarias: Int!
+  tendencia: Float!
+  confianza_pct: Float!
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -435,6 +450,8 @@ type Query {
   gastoOperativo(id_gasto: Int!): GastoOperativo!
   bitacoraAuditorias: [BitacoraAuditoria!]!
   bitacoraAuditoria(id_auditoria: Int!): BitacoraAuditoria!
+  prediccionVentasProximoMes(mesesHistorico: Int! = 6, factorS: Float! = 0.1): PrediccionVentasType!
+  prediccionDemandaInventario(factorS: Float! = 0.15): [PrediccionDemandaProductoType!]!
 }
 
 type Mutation {
