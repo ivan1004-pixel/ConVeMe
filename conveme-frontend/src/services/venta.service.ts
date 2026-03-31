@@ -44,3 +44,18 @@ export const deleteVenta = async (id: number) => {
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.removeVenta;
 };
+
+export const updateVenta = async (input: any) => {
+    const query = `
+    mutation UpdateVenta($input: UpdateVentaInput!) {
+        updateVenta(updateVentaInput: $input) {
+            id_venta
+            metodo_pago
+            estado
+        }
+    }
+    `;
+    const { data } = await convemeApi.post('', { query, variables: { input } });
+    if (data.errors) throw new Error(data.errors[0].message);
+    return data.data.updateVenta;
+};

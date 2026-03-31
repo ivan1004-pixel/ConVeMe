@@ -18,19 +18,11 @@ export class VentasService {
             throw new BadRequestException('La venta debe tener al menos un producto (detalle).');
         }
 
-        // Calculamos el monto total en el servidor para evitar trampas en el frontend
-        let montoCalculado = 0;
-        for (const detalle of createVentaInput.detalles) {
-            montoCalculado += detalle.cantidad * detalle.precio_unitario;
-        }
+        // Ya no sobreescribimos el monto_total, respetamos el que envía el POS
+        // (el cual ya trae el descuento de la promoción aplicado).
+        const nuevaVenta = this.ventaRepository.create(createVentaInput);
 
-        // Creamos la instancia de la venta inyectándole el monto calculado
-        const nuevaVenta = this.ventaRepository.create({
-            ...createVentaInput,
-            monto_total: montoCalculado
-        });
-
-        // Al guardar, TypeORM guardará la Venta y los DetVenta automáticamente (por el cascade)
+        // Al guardar, TypeORM guardará la Venta y los DetVenta automáticamente
         const guardada = await this.ventaRepository.save(nuevaVenta);
 
         return this.findOne(guardada.id_venta);
