@@ -151,21 +151,21 @@ export default function Profile() {
         </div>
 
         {/* Edit / Cancel button */}
-        <motion.button
-        className={`pf-edit-btn ${isEditing ? 'cancel' : 'edit'}`}
-        onClick={() => {
-            setIsEditing(v => !v);
-            setErrorMsg(null);
-            setEditPassword('');
-        }}
-        whileHover={{ scale:1.02 }}
-        whileTap={{ scale:0.97 }}
-        >
-        {isEditing
-            ? <><X size={15} /> Cancelar</>
-            : <><Edit2 size={15} /> Editar perfil</>
-        }
-        </motion.button>
+        {/* 👇 SOLO MOSTRAR BOTÓN SI ES ADMIN (rolId === 1) */}
+        {miRol === 1 && (
+            <motion.button
+            className={`pf-edit-btn ${isEditing ? 'cancel' : 'edit'}`}
+            onClick={() => {
+                setIsEditing(v => !v);
+                setErrorMsg(null);
+                setEditPassword('');
+            }}
+            whileHover={{ scale:1.02 }}
+            whileTap={{ scale:0.97 }}
+            >
+            {isEditing ? <><X size={15} /> Cancelar</> : <><Edit2 size={15} /> Editar perfil</>}
+            </motion.button>
+        )}
         </motion.div>
 
         {/* ── CONTENT (read / edit) ── */}

@@ -391,6 +391,20 @@ type PrediccionDemandaProductoType {
   confianza_pct: Float!
 }
 
+type Comprobante {
+  id_comprobante: Int!
+  vendedor_id: Int!
+  vendedor: Vendedor!
+  admin_id: Int!
+  admin: Usuario!
+  total_vendido: Float!
+  comision_vendedor: Float!
+  monto_entregado: Float!
+  saldo_pendiente: Float!
+  fecha_corte: DateTime!
+  notas: String
+}
+
 type Query {
   usuarios: [Usuario!]!
   usuario(id_usuario: Int!): Usuario!
@@ -455,6 +469,9 @@ type Query {
   bitacoraAuditoria(id_auditoria: Int!): BitacoraAuditoria!
   prediccionVentasProximoMes(mesesHistorico: Int! = 6, factorS: Float! = 0.1): PrediccionVentasType!
   prediccionDemandaInventario(factorS: Float! = 0.15): [PrediccionDemandaProductoType!]!
+  comprobantes: [Comprobante!]!
+  comprobantesPorVendedor(vendedor_id: Int!): [Comprobante!]!
+  comprobante(id: Int!): Comprobante!
 }
 
 type Mutation {
@@ -544,6 +561,9 @@ type Mutation {
   updateGastoOperativo(updateGastoOperativoInput: UpdateGastoOperativoInput!): GastoOperativo!
   removeGastoOperativo(id_gasto: Int!): Boolean!
   createBitacoraAuditoria(createBitacoraAuditoriaInput: CreateBitacoraAuditoriaInput!): BitacoraAuditoria!
+  createComprobante(createComprobanteInput: CreateComprobanteInput!): Comprobante!
+  updateComprobante(updateComprobanteInput: UpdateComprobanteInput!): Comprobante!
+  removeComprobante(id: Int!): Boolean!
 }
 
 input CreateUsuarioInput {
@@ -557,7 +577,6 @@ input UpdateUsuarioInput {
   password_raw: String
   rol_id: Int
   id_usuario: Int!
-  activo: Boolean
 }
 
 input LoginInput {
@@ -1061,4 +1080,25 @@ input CreateBitacoraAuditoriaInput {
   tabla_afectada: String!
   registro_id: Int
   detalles: String
+}
+
+input CreateComprobanteInput {
+  vendedor_id: Int!
+  admin_id: Int!
+  total_vendido: Float!
+  comision_vendedor: Float!
+  monto_entregado: Float!
+  saldo_pendiente: Float = 0
+  notas: String
+}
+
+input UpdateComprobanteInput {
+  vendedor_id: Int
+  admin_id: Int
+  total_vendido: Float
+  comision_vendedor: Float
+  monto_entregado: Float
+  saldo_pendiente: Float = 0
+  notas: String
+  id_comprobante: Int!
 }

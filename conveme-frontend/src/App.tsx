@@ -15,6 +15,7 @@ import Produccion from './pages/Produccion';
 // Vendedor
 import DashboardVendedor from './pages/DashboardVendedor';
 import MisPedidos from './pages/MisPedidos';
+import MisFinanzas from './pages/MisFinanzas'; // Ajusta la ruta si es necesario
 
 import DashboardLayout from './components/ui/DashboardLayout';
 // 👇 ¡Un solo import para las reglas de seguridad!
@@ -33,7 +34,6 @@ function App() {
     {/* 🛡️ ZONA EXCLUSIVA DEL ADMINISTRADOR (Rol 1) */}
     <Route element={<AdminRoute />}>
     <Route path="/dashboard" element={<DashboardHome />} />
-    <Route path="/perfil" element={<Profile />} />
     <Route path="/crear-usuario" element={<CreateUser />} />
     <Route path="/pedidos-admin" element={<PedidosAdmin />} />
     <Route path="/cortes-admin" element={<CortesAdmin />} />
@@ -51,6 +51,8 @@ function App() {
     <Route path="/mis-pedidos" element={<MisPedidos />} />
     {/* El Punto de Venta lo ponemos aquí para que AMBOS puedan vender */}
     <Route path="/pos" element={<POS />} />
+    <Route path="/mis-finanzas" element={<MisFinanzas />} />
+    <Route path="/perfil" element={<Profile />} />
     </Route>
 
     {/* Si escriben una URL rara, los mandamos a login para que el sistema decida a dónde van */}

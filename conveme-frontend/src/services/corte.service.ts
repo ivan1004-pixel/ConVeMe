@@ -18,7 +18,7 @@ export const getCortes = async () => {
                 id_asignacion
             }
             detalles {
-                id_det_corte  # <--- CORREGIDO (Añadido para que Editar funcione)
+                id_det_corte
                 cantidad_vendida
                 cantidad_devuelta
                 merma_reportada
@@ -71,4 +71,10 @@ export const deleteCorte = async (id: number) => {
     const { data } = await convemeApi.post('', { query, variables: { id } });
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.removeCorteVendedor;
+};
+
+// 👇 ESTA ES LA FUNCIÓN QUE EL VENDEDOR NECESITA PARA "MIS FINANZAS" 👇
+export const getCortesPorVendedor = async (vendedor_id: number) => {
+    const todosLosCortes = await getCortes();
+    return todosLosCortes.filter((corte: any) => corte.vendedor?.id_vendedor === vendedor_id);
 };

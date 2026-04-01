@@ -35,6 +35,7 @@ import { CategoriasGastoModule } from './categorias-gasto/categorias-gasto.modul
 import { GastosOperativosModule } from './gastos-operativos/gastos-operativos.module';
 import { BitacoraAuditoriaModule } from './bitacora-auditoria/bitacora-auditoria.module';
 import { PrediccionesModule } from './predicciones/predicciones.module';
+import { ComprobantesModule } from './comprobantes/comprobantes.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { PrediccionesModule } from './predicciones/predicciones.module';
     GastosOperativosModule,
     BitacoraAuditoriaModule,
     PrediccionesModule,
+    ComprobantesModule,
   ],
 })
 export class AppModule {}

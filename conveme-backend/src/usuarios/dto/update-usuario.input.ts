@@ -7,5 +7,11 @@ export class UpdateUsuarioInput extends PartialType(CreateUsuarioInput) {
     id_usuario: number;
 
     @Field({ nullable: true })
-    activo?: boolean;
+    username?: string;
+
+    @Field({ nullable: true })
+    password_raw?: string;
+
+    @Field(() => Int, { nullable: true })
+    rol_id?: number;
 }

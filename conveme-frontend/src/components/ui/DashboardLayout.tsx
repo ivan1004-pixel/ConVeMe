@@ -33,14 +33,15 @@ export default function DashboardLayout() {
     const rol = rolInfo[rolId] ?? { label: 'Invitado', color: '#aaa', icon: <Users size={13} /> };
 
     const menuItems = [
-        { nombre: 'Inicio',          path: '/dashboard',      icono: <Home        size={18} />, roles: [1,2,3], section: 'General'    },
-        { nombre: 'Mi Perfil',       path: '/perfil',         icono: <Users       size={18} />, roles: [1,2,3], section: 'General'    },
-        { nombre: 'Punto de Venta',  path: '/pos',            icono: <ShoppingCart size={18}/>, roles: [1,2],   section: 'Ventas'     },
-        { nombre: 'Mis Clientes',    path: '/pedidos-admin',       icono: <Users       size={18} />, roles: [1,2],   section: 'Ventas'     },
-        { nombre: 'Inventario',      path: '/inventario',     icono: <Package     size={18} />, roles: [1,3],   section: 'Logística'  },
-        { nombre: 'Producción',      path: '/produccion',     icono: <Scissors    size={18} />, roles: [1,3],   section: 'Logística'  },
-        { nombre: 'Finanzas',        path: '/finanzas',       icono: <TrendingUp  size={18} />, roles: [1],     section: 'Admin'      },
-        { nombre: 'Catálogos',        path: '/crear-usuario',  icono: <Settings    size={18} />, roles: [1],     section: 'Admin'      },
+        // 👇 SOLUCIÓN: Si es rol 2 (Vendedor) va a '/dashboard-vendedor'. Si es Admin (1) o Producción (3), se queda en tu ruta original '/dashboard'
+        { nombre: 'Inicio',          path: rolId === 2 ? '/dashboard-vendedor' : '/dashboard',      icono: <Home        size={18} />, roles: [1,2,3], section: 'General'    },
+        { nombre: 'Mi Perfil',       path: '/perfil',          icono: <Users       size={18} />, roles: [1,2,3], section: 'General'    },
+        { nombre: 'Punto de Venta',  path: '/pos',             icono: <ShoppingCart size={18}/>, roles: [1,2],   section: 'Ventas'     },
+        { nombre: 'Mis Clientes',    path: '/pedidos-admin',       icono: <Users       size={18} />, roles: [1],   section: 'Ventas'     },
+        { nombre: 'Inventario',      path: '/inventario',      icono: <Package     size={18} />, roles: [1,3],   section: 'Logística'  },
+        { nombre: 'Producción',      path: '/produccion',      icono: <Scissors    size={18} />, roles: [1,3],   section: 'Logística'  },
+        { nombre: 'Crear usuario',        path: '/crear-usuario',  icono: <Settings    size={18} />, roles: [1],     section: 'Admin'      },
+        { nombre: 'Mis pedidos',        path: '/mis-pedidos',  icono: <Users    size={18} />, roles: [2],     section: 'Pedidos'      },
     ];
 
     const menuFiltrado = menuItems.filter(item => item.roles.includes(rolId));
@@ -68,7 +69,7 @@ export default function DashboardLayout() {
             }
 
             /* ══════════════════════════════
-             *              SIDEBAR
+             *               SIDEBAR
              *           ══════════════════════════════ */
             .dl-sidebar {
                 position: relative;
@@ -310,7 +311,7 @@ export default function DashboardLayout() {
             .dl-logout-label { overflow: hidden; white-space: nowrap; transition: opacity 0.2s, max-width 0.28s; }
 
             /* ══════════════════════════════
-             *              MAIN AREA
+             *               MAIN AREA
              *           ══════════════════════════════ */
             .dl-main {
                 flex: 1;
