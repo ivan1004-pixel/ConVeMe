@@ -313,6 +313,8 @@ type Pedido {
   id_pedido: Int!
   cliente_id: Int
   cliente: Cliente
+  vendedor_id: Int
+  vendedor: Vendedor
   fecha_pedido: DateTime!
   fecha_entrega_estimada: DateTime
   monto_total: Float!
@@ -407,6 +409,7 @@ type Query {
   empleados: [Empleado!]!
   empleado(id_empleado: Int!): Empleado!
   vendedores: [Vendedor!]!
+  vendedorByUsuario(usuario_id: Int!): Vendedor
   vendedor(id_vendedor: Int!): Vendedor!
   clientes: [Cliente!]!
   cliente(id_cliente: Int!): Cliente!
@@ -972,6 +975,7 @@ input UpdatePromocionInput {
 
 input CreatePedidoInput {
   cliente_id: Int
+  vendedor_id: Int
   fecha_entrega_estimada: DateTime
   monto_total: Float!
   anticipo: Float = 0
@@ -987,6 +991,7 @@ input CreateDetPedidoInput {
 
 input UpdatePedidoInput {
   cliente_id: Int
+  vendedor_id: Int
   fecha_entrega_estimada: DateTime
   monto_total: Float
   anticipo: Float = 0

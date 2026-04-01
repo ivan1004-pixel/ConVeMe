@@ -18,6 +18,11 @@ export class VendedoresResolver {
         return this.vendedoresService.findAll();
     }
 
+    @Query(() => Vendedor, { name: 'vendedorByUsuario', nullable: true })
+    findByUsuario(@Args('usuario_id', { type: () => Int }) usuario_id: number) {
+        return this.vendedoresService.findByUsuarioId(usuario_id);
+    }
+
     @Query(() => Vendedor, { name: 'vendedor' })
     findOne(@Args('id_vendedor', { type: () => Int }) id_vendedor: number) {
         return this.vendedoresService.findOne(id_vendedor);

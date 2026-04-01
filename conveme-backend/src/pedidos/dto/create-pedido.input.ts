@@ -17,6 +17,10 @@ export class CreatePedidoInput {
     @Field(() => Int, { nullable: true })
     cliente_id?: number;
 
+    // 👇 ¡NUEVO! Permitimos recibir el ID del vendedor
+    @Field(() => Int, { nullable: true })
+    vendedor_id?: number;
+
     @Field({ nullable: true })
     fecha_entrega_estimada?: Date;
 
@@ -29,7 +33,6 @@ export class CreatePedidoInput {
     @Field({ nullable: true })
     estado?: string;
 
-    // Lista de productos encargados
     @Field(() => [CreateDetPedidoInput])
     detalles: CreateDetPedidoInput[];
 }

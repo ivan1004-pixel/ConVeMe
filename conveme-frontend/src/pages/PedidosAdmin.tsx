@@ -81,7 +81,7 @@ export default function PedidosAdmin() {
 
     const pedidosFiltrados = pedidos.filter(p =>
     String(p.id_pedido).includes(search) ||
-    (p.cliente?.nombre || '').toLowerCase().includes(search.toLowerCase()) ||
+    (p.cliente?.nombre_completo || '').toLowerCase().includes(search.toLowerCase()) ||
     p.estado.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -146,9 +146,12 @@ export default function PedidosAdmin() {
                     </div>
 
                     <p className="text-sm font-bold text-[#cc55ff] mb-2 flex items-center gap-2">
-                    👤 {pedido.cliente?.nombre || 'Cliente General'}
+                     {
+                        pedido.cliente?.nombre_completo ? `Cliente: ${pedido.cliente.nombre}` :
+                        pedido.vendedor?.nombre_completo ? `Vendedor: ${pedido.vendedor.nombre_completo}` :
+                        'Mostrador'
+                    }
                     </p>
-
                     {pedido.fecha_entrega_estimada && (
                         <p className="text-xs font-bold text-[#06d6a0] mb-4 flex items-center gap-1 bg-[#06d6a0]/10 w-fit px-2 py-1 rounded-md">
                         <CalendarClock size={14}/> Entrega: {new Date(pedido.fecha_entrega_estimada).toLocaleDateString('es-MX')}

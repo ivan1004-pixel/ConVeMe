@@ -19,8 +19,23 @@ export default function Login() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const fueExitoso = await iniciarSesion(username, password);
+
         if (fueExitoso) {
-            setTimeout(() => navigate('/dashboard'), 2000);
+            // Leemos el rol que el auth.service acaba de guardar en el LocalStorage
+            const rolId = localStorage.getItem('rol_id');
+
+            setTimeout(() => {
+                if (rolId === '1') {
+                    // Si es Admin, va a su dashboard normal
+                    navigate('/dashboard');
+                } else if (rolId === '2') {
+                    // Si es Vendedor, va a su portal especial
+                    navigate('/dashboard-vendedor');
+                } else {
+                    // Fallback de seguridad
+                    navigate('/dashboard');
+                }
+            }, 2000);
         }
     };
 

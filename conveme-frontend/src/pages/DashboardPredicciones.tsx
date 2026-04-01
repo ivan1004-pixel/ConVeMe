@@ -59,7 +59,7 @@ export default function DashboardPredicciones() {
             Crecimiento esperado: {ventas.crecimiento_pct}%
             </p>
             <div className="mt-4 p-3 bg-gray-50 rounded-xl text-xs font-bold text-gray-500">
-            🧠 Factor Laplace (s=0.10) → α={ventas.factor_alpha} <br/>
+             Factor Laplace (s=0.10) → α={ventas.factor_alpha} <br/>
             Confianza del algoritmo: {ventas.confianza_pct}%
             </div>
             </div>

@@ -76,6 +76,7 @@ export const deleteVendedor = async (id: number) => {
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.removeVendedor;
 };
+
 // 5. Obtener usuarios (para el selector al crear vendedor)
 export const getUsuariosParaSelect = async () => {
     const query = `
@@ -89,4 +90,19 @@ export const getUsuariosParaSelect = async () => {
     const { data } = await convemeApi.post('', { query });
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.usuarios;
+};
+
+// 6. Obtener Vendedor por ID de Usuario (¡NUEVO!)
+export const getVendedorByUsuarioId = async (usuario_id: number) => {
+    const query = `
+    query VendedorByUsuario($usuario_id: Int!) {
+        vendedorByUsuario(usuario_id: $usuario_id) {
+            id_vendedor
+            nombre_completo
+        }
+    }
+    `;
+    const { data } = await convemeApi.post('', { query, variables: { usuario_id } });
+    if (data.errors) throw new Error(data.errors[0].message);
+    return data.data.vendedorByUsuario;
 };

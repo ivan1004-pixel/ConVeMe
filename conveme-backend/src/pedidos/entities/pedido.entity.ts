@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMan
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Cliente } from '../../clientes/cliente.entity';
 import { DetPedido } from './det-pedido.entity';
+import { Vendedor } from '../../vendedores/vendedor.entity';
 
 @ObjectType()
 @Entity('pedidos')
@@ -19,6 +20,16 @@ export class Pedido {
     @JoinColumn({ name: 'cliente_id' })
     cliente: Cliente;
 
+    // 👇 ¡NUEVO! Creamos el espacio para el vendedor
+    @Field(() => Int, { nullable: true })
+    @Column({ nullable: true })
+    vendedor_id: number;
+
+    @Field(() => Vendedor, { nullable: true })
+    @ManyToOne(() => Vendedor)
+    @JoinColumn({ name: 'vendedor_id' })
+    vendedor: Vendedor;
+
     @Field()
     @CreateDateColumn()
     fecha_pedido: Date;
@@ -31,16 +42,14 @@ export class Pedido {
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
     monto_total: number;
 
-    // Súper útil para los que te dejan la mitad pagada
     @Field(() => Float)
     @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
     anticipo: number;
 
     @Field()
-    @Column({ default: 'Pendiente' }) // Pendiente, Entregado, Cancelado
+    @Column({ default: 'Pendiente' })
     estado: string;
 
-    // DOCUMENTACIÓN: Guardado en cascada para la lista de pines apartados
     @Field(() => [DetPedido], { nullable: true })
     @OneToMany(() => DetPedido, detalle => detalle.pedido, { cascade: true })
     detalles: DetPedido[];

@@ -7,25 +7,31 @@ import Profile from './pages/Profile';
 import Catalogos from './pages/Catalogos';
 import Inventario from './pages/Inventario';
 import POS from './pages/POS';
-import AsignacionesAdmin from './pages/AsignacionesAdmin'
-import { AdminRoute } from './components/ProtectedRoute';
-import DashboardLayout from './components/ui/DashboardLayout';
+import AsignacionesAdmin from './pages/AsignacionesAdmin';
 import PedidosAdmin from './pages/PedidosAdmin';
 import CortesAdmin from './pages/CortesAdmin';
 import Produccion from './pages/Produccion';
-// Y adentro de tu <Route element={<DashboardLayout />}> agrega:
+
+// Vendedor
+import DashboardVendedor from './pages/DashboardVendedor';
+import MisPedidos from './pages/MisPedidos';
+
+import DashboardLayout from './components/ui/DashboardLayout';
+// 👇 ¡Un solo import para las reglas de seguridad!
+import { AdminRoute, VendedorRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
     <Routes>
-    {/* 🌍 Rutas Públicas */}
+    {/* 🌍 RUTAS PÚBLICAS */}
     <Route path="/" element={<Home />} />
     <Route path="/login" element={<Login />} />
 
-    {/* 🛡️ Rutas Protegidas (Requieren Token) */}
-    <Route element={<AdminRoute />}>
-    {/* 🏗️ Todo lo que esté aquí adentro vivirá dentro del Sidebar */}
+    {/* 🏗️ LAYOUT COMPARTIDO (Todo lo de adentro tiene el Sidebar) */}
     <Route element={<DashboardLayout />}>
+
+    {/* 🛡️ ZONA EXCLUSIVA DEL ADMINISTRADOR (Rol 1) */}
+    <Route element={<AdminRoute />}>
     <Route path="/dashboard" element={<DashboardHome />} />
     <Route path="/perfil" element={<Profile />} />
     <Route path="/crear-usuario" element={<CreateUser />} />
@@ -33,16 +39,24 @@ function App() {
     <Route path="/cortes-admin" element={<CortesAdmin />} />
     <Route path="/asignaciones-admin" element={<AsignacionesAdmin />} />
     <Route path="/produccion" element={<Produccion />} />
-
-    {/* Tus Módulos Principales */}
     <Route path="/catalogos" element={<Catalogos />} />
     <Route path="/inventario" element={<Inventario />} />
-    <Route path="/pos" element={<POS />} /> {/* 👈 Aquí está el Punto de Venta */}
+    </Route>
 
-    {/* Si escribes una URL rara, te regresa al inicio (Siempre va al final) */}
-    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    {/* ZONA DEL VENDEDOR (Y ADMIN) (Roles 1 y 2) */}
+    <Route element={<VendedorRoute />}>
+    <Route path="/dashboard-vendedor" element={<DashboardVendedor />} />
+    {/* Aquí pondremos las demás del vendedor después: /mis-pedidos, /mis-finanzas, etc. */}
+    {/* 👈 AGREGA LA RUTA AQUÍ */}
+    <Route path="/mis-pedidos" element={<MisPedidos />} />
+    {/* El Punto de Venta lo ponemos aquí para que AMBOS puedan vender */}
+    <Route path="/pos" element={<POS />} />
     </Route>
+
+    {/* Si escriben una URL rara, los mandamos a login para que el sistema decida a dónde van */}
+    <Route path="*" element={<Navigate to="/login" replace />} />
     </Route>
+
     </Routes>
   );
 }

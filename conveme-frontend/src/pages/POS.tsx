@@ -54,6 +54,13 @@ export default function POS() {
 
     useEffect(() => {
         cargarDatos();
+
+        // ¡NUEVO! Detectar si es vendedor y autoseleccionarlo
+        const rolId = localStorage.getItem('rol_id');
+        const idVendedorLocal = localStorage.getItem('id_vendedor');
+        if (rolId === '2' && idVendedorLocal) {
+            setVendedorId(Number(idVendedorLocal));
+        }
     }, []);
 
     const cargarDatos = async () => {
@@ -103,7 +110,10 @@ export default function POS() {
         setCarrito([]);
         setClienteId('');
         setPromocionId('');
-        setVendedorId('');
+        // Si no es vendedor, limpiamos. Si sí es, lo dejamos puesto.
+        if (localStorage.getItem('rol_id') !== '2') {
+            setVendedorId('');
+        }
         setOrdenIniciada(false);
     };
 
@@ -133,11 +143,9 @@ export default function POS() {
 
         setProcesando(true);
         try {
-            // ¡CORRECCIÓN DEL ERROR 400!
-            // Eliminamos promocion_id porque el backend de Venta no lo acepta, solo mandamos el total final con descuento
             const payload: any = {
                 vendedor_id: Number(vendedorId),
-                ...(clienteId ? { cliente_id: Number(clienteId) } : {}), // Si hay cliente lo manda, si no, no.
+                ...(clienteId ? { cliente_id: Number(clienteId) } : {}),
                 monto_total: Number(totalFinal.toFixed(2)),
                 metodo_pago: metodoPago,
                 estado: 'Completada',
@@ -338,7 +346,12 @@ export default function POS() {
             <div className="flex gap-2">
             <div className="flex-1">
             <label className="block text-[9px] font-syne font-bold uppercase tracking-wider text-[#1a0060] mb-1">Vendedor</label>
-            <select value={vendedorId} onChange={e => setVendedorId(Number(e.target.value))} className="w-full bg-[#faf5ff] border-[2px] border-[#d4b8f0] rounded-xl p-2 font-medium text-[#1a0060] text-sm outline-none cursor-pointer focus:border-[#cc55ff]">
+            <select
+            value={vendedorId}
+            onChange={e => setVendedorId(Number(e.target.value))}
+            disabled={localStorage.getItem('rol_id') === '2'}
+            className="w-full bg-[#faf5ff] border-[2px] border-[#d4b8f0] rounded-xl p-2 font-medium text-[#1a0060] text-sm outline-none cursor-pointer focus:border-[#cc55ff] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
             <option value="" disabled>Seleccione...</option>
             {vendedores.map(v => <option key={v.id_vendedor} value={v.id_vendedor}>{v.nombre_completo}</option>)}
             </select>

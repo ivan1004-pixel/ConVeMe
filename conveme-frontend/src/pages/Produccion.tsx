@@ -10,7 +10,7 @@ import { getOrdenesProduccion, createOrdenProduccion, updateOrdenProduccion } fr
 import { getInsumos, createInsumo, updateInsumo, deleteInsumo } from '../services/insumo.service';
 
 // Modales
-import ModalOrdenProduccion from '../components/catalogos/ModalOrdenProduccion'; // O la ruta donde lo tengas
+import ModalOrdenProduccion from '../components/catalogos/ModalOrdenProduccion';
 import ModalInsumo from '../components/produccion/ModalInsumo'; // El que acabamos de crear
 
 import {

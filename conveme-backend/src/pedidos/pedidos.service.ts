@@ -20,14 +20,15 @@ export class PedidosService {
 
     async findAll(): Promise<Pedido[]> {
         return this.pedidoRepository.find({
-            relations: ['cliente', 'detalles', 'detalles.producto']
+            relations: ['cliente', 'detalles', 'detalles.producto', 'vendedor']
         });
     }
 
     async findOne(id_pedido: number): Promise<Pedido> {
         const pedido = await this.pedidoRepository.findOne({
             where: { id_pedido },
-            relations: ['cliente', 'detalles', 'detalles.producto'],
+            // 👇 ¡AQUÍ ESTABA EL DETALLE! Agregamos 'vendedor' a la lista
+            relations: ['cliente', 'detalles', 'detalles.producto', 'vendedor'],
         });
         if (!pedido) throw new NotFoundException(`Pedido #${id_pedido} no encontrado`);
         return pedido;

@@ -70,4 +70,13 @@ export class VendedoresService {
         await this.vendedorRepository.delete(id_vendedor);
         return vendedorABorrar; // Devolvemos los datos del que acabamos de borrar
     }
+
+    async findByUsuarioId(usuario_id: number): Promise<Vendedor | null> {
+        const vendedor = await this.vendedorRepository.findOne({
+            where: { usuario_id },
+            relations: ['usuario', 'escuela', 'municipio', 'municipio.estado'],
+        });
+        return vendedor;
+    }
+
 }
