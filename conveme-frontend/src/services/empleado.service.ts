@@ -79,3 +79,27 @@ export const deleteEmpleado = async (id: number) => {
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.removeEmpleado;
 };
+
+// 5. Obtener empleado por ID de usuario (Para el Perfil)
+export const getEmpleadoPorUsuario = async (id_usuario: number) => {
+    const query = `
+    query {
+        empleados {
+            id_empleado
+            nombre_completo
+            email
+            telefono
+            puesto
+            usuario {
+                id_usuario
+            }
+        }
+    }
+    `;
+    const { data } = await convemeApi.post('', { query });
+    if (data.errors) throw new Error(data.errors[0].message);
+
+    // Filtramos para encontrar el empleado que coincida con el usuario logueado
+    const empleado = data.data.empleados.find((emp: any) => emp.usuario?.id_usuario === id_usuario);
+    return empleado;
+};

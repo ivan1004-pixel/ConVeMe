@@ -92,13 +92,28 @@ export const getUsuariosParaSelect = async () => {
     return data.data.usuarios;
 };
 
-// 6. Obtener Vendedor por ID de Usuario (¡NUEVO!)
+// 6. Obtener Vendedor por ID de Usuario (Actualizado para el Perfil)
 export const getVendedorByUsuarioId = async (usuario_id: number) => {
     const query = `
     query VendedorByUsuario($usuario_id: Int!) {
         vendedorByUsuario(usuario_id: $usuario_id) {
             id_vendedor
             nombre_completo
+            email
+            telefono
+            instagram_handle
+            comision_fija_menudeo
+            comision_fija_mayoreo
+            meta_ventas_mensual
+            escuela {
+                nombre
+            }
+            municipio {
+                nombre
+                estado {
+                    nombre
+                }
+            }
         }
     }
     `;

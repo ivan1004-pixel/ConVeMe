@@ -81,22 +81,7 @@ export default function DashboardVendedor() {
             stat:    'Ver Detalles',
             statIcon:<Receipt size={16} />,
         },
-        {
-            to:      '/mi-perfil',
-            bg:      '#cc55ff',
-            accent:  '#1a0060',
-            textCol: '#fff',
-            subCol:  'rgba(255,255,255,0.75)',
-            icon:    <UserCircle size={28} />,
-            label:   'Ajustes',
-            title:   'Mi Perfil',
-            sub:     'Actualiza tus datos de contacto, punto de entrega y redes.',
-            tag:     'Cuenta',
-            tagBg:   'rgba(255,255,255,0.22)',
-            tagCol:  '#fff',
-            stat:    'Editar info',
-            statIcon:<User size={20} />,
-        }
+
     ];
 
     return (

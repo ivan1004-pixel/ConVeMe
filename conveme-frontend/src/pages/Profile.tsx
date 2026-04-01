@@ -1,41 +1,66 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUsuarioPerfil, updateUserService } from '../services/user.service';
+
+// Importamos AMBOS servicios
+import { getEmpleadoPorUsuario, updateEmpleado } from '../services/empleado.service';
+import { getVendedorByUsuarioId } from '../services/vendedor.service';
+
 import UserGreeting from '../components/ui/UserGreeting';
 import {
-    Edit2, Save, X, User, Lock, Shield,
-    Calendar, CheckCircle, XCircle, ChevronDown,
-    AlertTriangle, Star, Truck
+    Edit2, Save, X, User, Shield,
+    CheckCircle, AlertTriangle, Star, Truck,
+    Mail, Phone, Briefcase, MapPin, AtSign, School, DollarSign
 } from 'lucide-react';
 
-import '../styles/Profile.css'; // Importamos los estilos aquí
+import '../styles/Profile.css';
 import mascotaImg from '../assets/mascota.jpg';
 
 export default function Profile() {
-    const [perfil, setPerfil]           = useState<any>(null);
-    const [loading, setLoading]         = useState(true);
-    const [isEditing, setIsEditing]     = useState(false);
-    const [editUsername, setEditUsername] = useState('');
-    const [editPassword, setEditPassword] = useState('');
-    const [editRolId, setEditRolId]     = useState(1);
-    const [showPass, setShowPass]       = useState(false);
-    const [saving, setSaving]           = useState(false);
-    const [errorMsg, setErrorMsg]       = useState<string | null>(null);
-    const [savedOk, setSavedOk]         = useState(false);
-
+    const userId = Number(localStorage.getItem('id_usuario'));
     const miRol = Number(localStorage.getItem('rol_id'));
+    const usernameLogueado = localStorage.getItem('username') || 'Usuario';
 
-    useEffect(() => { cargarPerfil(); }, []);
+    const [datosPersonales, setDatosPersonales] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
 
-    const cargarPerfil = async () => {
+    // Estado para el formulario de EDICIÓN (Solo para Admins/Empleados)
+    const [form, setForm] = useState({
+        nombre_completo: '', correo: '', telefono: '', puesto: '',
+        calle_numero: '', colonia: '', codigo_postal: ''
+    });
+
+    const [saving, setSaving] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [savedOk, setSavedOk] = useState(false);
+
+    useEffect(() => { cargarDatos(); }, []);
+
+    const cargarDatos = async () => {
         try {
-            const id   = Number(localStorage.getItem('id_usuario'));
-            const data = await getUsuarioPerfil(id);
-            setPerfil(data);
-            setEditUsername(data.username);
-            setEditRolId(data.rol_id);
+            if (miRol === 2) {
+                // Es Vendedor
+                const data = await getVendedorByUsuarioId(userId);
+                if (data) setDatosPersonales(data);
+            } else {
+                // Es Admin o Producción (Empleado)
+                const data = await getEmpleadoPorUsuario(userId);
+                if (data) {
+                    setDatosPersonales(data);
+                    setForm({
+                        nombre_completo: data.nombre_completo,
+                        correo: data.correo,
+                        telefono: data.telefono,
+                        puesto: data.puesto,
+                        calle_numero: data.calle_numero || '',
+                        colonia: data.colonia || '',
+                        codigo_postal: data.codigo_postal || ''
+                    });
+                }
+            }
         } catch (e) {
-            console.error('Error al cargar perfil', e);
+            console.error('Error al cargar datos personales', e);
+            setErrorMsg('No se encontraron datos personales asociados a esta cuenta.');
         } finally {
             setLoading(false);
         }
@@ -46,19 +71,18 @@ export default function Profile() {
         setSaving(true);
         setErrorMsg(null);
         try {
-            const id          = Number(localStorage.getItem('id_usuario'));
-            const passAEnviar = editPassword.trim() !== '' ? editPassword : undefined;
-            const updated     = await updateUserService(id, editUsername, passAEnviar, editRolId);
-            localStorage.setItem('username', updated.username);
-            localStorage.setItem('rol_id',   updated.rol_id.toString());
-            setPerfil(updated);
+            const payload = {
+                id_empleado: datosPersonales.id_empleado,
+                ...form
+            };
+            await updateEmpleado(payload);
+
+            await cargarDatos();
             setIsEditing(false);
-            setEditPassword('');
             setSavedOk(true);
             setTimeout(() => setSavedOk(false), 3000);
-            window.dispatchEvent(new Event('storage'));
         } catch (err: any) {
-            setErrorMsg(err.message || 'Error al actualizar el perfil');
+            setErrorMsg(err.message || 'Error al actualizar los datos');
         } finally {
             setSaving(false);
         }
@@ -66,277 +90,236 @@ export default function Profile() {
 
     const rolMap: Record<number, { label: string; color: string; bg: string; icon: JSX.Element }> = {
         1: { label: 'Administrador', color: '#1a0060', bg: '#ffe144', icon: <Shield size={14} /> },
-        2: { label: 'Vendedor',      color: '#fff',    bg: '#cc55ff', icon: <Star   size={14} /> },
-        3: { label: 'Producción',    color: '#1a0060', bg: '#06d6a0', icon: <Truck  size={14} /> },
+        2: { label: 'Vendedor',      color: '#fff',     bg: '#cc55ff', icon: <Star size={14} /> },
+        3: { label: 'Producción',    color: '#1a0060', bg: '#06d6a0', icon: <Truck size={14} /> },
     };
-    const rolInfo = rolMap[perfil?.rol_id] ?? rolMap[1];
-
-    // SVG eye icons
-    const IconEye = () => (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-        </svg>
-    );
-    const IconEyeOff = () => (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-        <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-        <line x1="1" y1="1" x2="23" y2="23"/>
-        </svg>
-    );
+    const rolInfo = rolMap[miRol] ?? rolMap[1];
 
     if (loading) return (
-        <div style={{ display:'flex', alignItems:'center', gap:12, padding:32, fontFamily:'Syne,sans-serif', fontWeight:900, fontSize:18, color:'#1a0060' }}>
-        <div style={{ width:20, height:20, border:'3px solid #cc55ff', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite' }} />
-        Cargando perfil...
+        <div className="flex items-center gap-3 p-8 font-syne font-black text-lg text-[#1a0060]">
+        <div className="w-5 h-5 border-2 border-[#cc55ff] border-t-transparent rounded-full animate-spin" />
+        Cargando datos personales...
         </div>
     );
 
     return (
         <>
-        {/* Toast */}
         <AnimatePresence>
         {savedOk && (
-            <motion.div
-            className="pf-toast"
-            initial={{ opacity:0, y:-50, scale:0.9 }}
-            animate={{ opacity:1, y:0,   scale:1   }}
-            exit={{ opacity:0, y:-40, scale:0.9 }}
-            transition={{ type:'spring', stiffness:280, damping:22 }}
-            >
+            <motion.div className="pf-toast" initial={{ opacity:0, y:-50 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-40 }}>
             <span className="pf-toast-icon"><CheckCircle size={20} /></span>
-            Perfil actualizado correctamente
+            Datos actualizados correctamente
             </motion.div>
         )}
         </AnimatePresence>
 
         <div className="pf-root">
-
         <UserGreeting />
 
         {/* ── HERO ── */}
-        <motion.div
-        className="pf-hero"
-        initial={{ opacity:0, y:20 }}
-        animate={{ opacity:1, y:0 }}
-        transition={{ duration:0.55, ease:[0.22,1,0.36,1] }}
-        >
-        <div className="pf-hero-blob pf-hero-blob-1" />
-        <div className="pf-hero-blob pf-hero-blob-2" />
-
-        {/* Avatar */}
+        <motion.div className="pf-hero" initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}>
         <div className="pf-avatar-wrap">
-        <div className="pf-avatar">
-        <img src={mascotaImg} alt="Avatar" />
-        </div>
+        <div className="pf-avatar"><img src={mascotaImg} alt="Avatar" /></div>
         <div className="pf-avatar-ring" />
         </div>
 
-        {/* Info */}
         <div className="pf-hero-info">
-        <span
-        className="pf-hero-role"
-        style={{ background: rolInfo.bg, color: rolInfo.color }}
-        >
+        <span className="pf-hero-role" style={{ background: rolInfo.bg, color: rolInfo.color }}>
         {rolInfo.icon} {rolInfo.label}
         </span>
-        <p className="pf-hero-username">{perfil?.username}</p>
+        <p className="pf-hero-username">{datosPersonales?.nombre_completo || usernameLogueado}</p>
         <span className="pf-hero-status">
-        <span
-        className="pf-status-dot"
-        style={{ background: perfil?.activo ? '#06d6a0' : '#ff6b6b' }}
-        />
-        {perfil?.activo ? 'Cuenta activa' : 'Cuenta inactiva'}
+        {miRol === 2
+            ? <><School size={12} className="opacity-60" /> {datosPersonales?.escuela?.nombre || 'Sin escuela asignada'}</>
+            : <><Briefcase size={12} className="opacity-60" /> {datosPersonales?.puesto || 'Sin puesto'}</>
+        }
         </span>
         </div>
 
-        {/* Edit / Cancel button */}
-        {/* 👇 SOLO MOSTRAR BOTÓN SI ES ADMIN (rolId === 1) */}
+        {/* 👇 SOLO EL ADMIN PUEDE EDITAR (Y solo edita su ficha de empleado por ahora) */}
         {miRol === 1 && (
             <motion.button
             className={`pf-edit-btn ${isEditing ? 'cancel' : 'edit'}`}
             onClick={() => {
                 setIsEditing(v => !v);
                 setErrorMsg(null);
-                setEditPassword('');
             }}
             whileHover={{ scale:1.02 }}
             whileTap={{ scale:0.97 }}
             >
-            {isEditing ? <><X size={15} /> Cancelar</> : <><Edit2 size={15} /> Editar perfil</>}
+            {isEditing ? <><X size={15} /> Cancelar</> : <><Edit2 size={15} /> Editar datos</>}
             </motion.button>
         )}
         </motion.div>
 
-        {/* ── CONTENT (read / edit) ── */}
+        {/* ── CONTENT ── */}
         <AnimatePresence mode="wait">
         {!isEditing ? (
 
-            /* ══ READ VIEW ══ */
-            <motion.div
-            key="read"
-            className="pf-card"
-            initial={{ opacity:0, x:-20 }}
-            animate={{ opacity:1, x:0  }}
-            exit={{ opacity:0, x:20 }}
-            transition={{ duration:0.3 }}
-            >
+            /* ══ READ VIEW (Dinámica) ══ */
+            <motion.div key="read" className="pf-card" initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:20 }}>
             <div className="pf-card-header">
             <div className="pf-card-header-icon"><User size={16} /></div>
-            <span className="pf-card-header-title">Información de la cuenta</span>
+            <span className="pf-card-header-title">Información Personal</span>
             </div>
-            <div className="pf-card-body">
-            {/* Username */}
-            <div className="pf-info-block">
+            <div className="pf-card-body grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+
+            {/* Bloques en común (Nombre, Correo, Teléfono) */}
+            <div className="pf-info-block col-span-2 border-b border-dashed border-[#1a0060]/10 pb-4">
             <div className="pf-info-icon"><User size={18} /></div>
             <div className="pf-info-text">
-            <span className="pf-info-label">Usuario</span>
-            <span className="pf-info-value">{perfil?.username}</span>
+            <span className="pf-info-label">Nombre Completo</span>
+            <span className="pf-info-value !text-lg">{datosPersonales?.nombre_completo}</span>
             </div>
             </div>
 
-            {/* Role */}
             <div className="pf-info-block">
-            <div className="pf-info-icon"><Shield size={18} /></div>
+            <div className="pf-info-icon"><Mail size={18} /></div>
             <div className="pf-info-text">
-            <span className="pf-info-label">Rol</span>
-            <span className="pf-info-value">{rolInfo.label}</span>
+            <span className="pf-info-label">Correo Electrónico</span>
+            <span className="pf-info-value">{datosPersonales?.email || datosPersonales?.correo || 'No registrado'}</span>
             </div>
             </div>
 
-            {/* Status */}
             <div className="pf-info-block">
-            <div className="pf-info-icon" style={{ color: perfil?.activo ? '#06d6a0' : '#ff6b6b', background: perfil?.activo ? 'rgba(6,214,160,0.1)' : 'rgba(255,107,107,0.1)', borderColor: perfil?.activo ? 'rgba(6,214,160,0.2)' : 'rgba(255,107,107,0.2)' }}>
-            {perfil?.activo ? <CheckCircle size={18} /> : <XCircle size={18} />}
-            </div>
+            <div className="pf-info-icon"><Phone size={18} /></div>
             <div className="pf-info-text">
-            <span className="pf-info-label">Estado</span>
-            <span className={`pf-info-value ${perfil?.activo ? 'active' : 'inactive'}`}>
-            {perfil?.activo ? 'Activa' : 'Inactiva'}
-            </span>
+            <span className="pf-info-label">Teléfono</span>
+            <span className="pf-info-value">{datosPersonales?.telefono || 'No registrado'}</span>
             </div>
             </div>
 
-            {/* Member since */}
-            <div className="pf-info-block">
-            <div className="pf-info-icon"><Calendar size={18} /></div>
-            <div className="pf-info-text">
-            <span className="pf-info-label">Miembro desde</span>
-            <span className="pf-info-value" style={{ fontSize:13 }}>
-            {new Date(perfil?.created_at).toLocaleDateString('es-MX', {
-                year:'numeric', month:'short', day:'numeric'
-            })}
-            </span>
-            </div>
-            </div>
+            {/* Bloques exclusivos de VENDEDOR (miRol === 2) */}
+            {miRol === 2 && (
+                <>
+                <div className="pf-info-block">
+                <div className="pf-info-icon" style={{ background: 'rgba(204,85,255,0.1)', color: '#cc55ff' }}><AtSign size={18} /></div>
+                <div className="pf-info-text">
+                <span className="pf-info-label">Instagram</span>
+                <span className="pf-info-value">{datosPersonales?.instagram_handle ? `@${datosPersonales.instagram_handle}` : 'No registrado'}</span>
+                </div>
+                </div>
+
+                <div className="pf-info-block">
+                <div className="pf-info-icon" style={{ background: 'rgba(6,214,160,0.1)', color: '#06d6a0' }}><MapPin size={18} /></div>
+                <div className="pf-info-text">
+                <span className="pf-info-label">Zona de venta</span>
+                <span className="pf-info-value text-sm">
+                {datosPersonales?.municipio ? `${datosPersonales.municipio.nombre}, ${datosPersonales.municipio.estado.nombre}` : 'No registrada'}
+                </span>
+                </div>
+                </div>
+
+                <div className="pf-info-block col-span-2 bg-[#F3F0FF] p-4 rounded-xl border border-[#1a0060]/5 mt-2">
+                <div className="pf-info-icon"><DollarSign size={18} /></div>
+                <div className="pf-info-text">
+                <span className="pf-info-label">Esquema de Comisiones</span>
+                <span className="pf-info-value text-sm flex gap-4 mt-1">
+                <span><b>Menudeo:</b> {datosPersonales?.comision_fija_menudeo}%</span>
+                <span><b>Mayoreo:</b> {datosPersonales?.comision_fija_mayoreo}%</span>
+                </span>
+                </div>
+                </div>
+                </>
+            )}
+
+            {/* Bloques exclusivos de EMPLEADO (miRol === 1 o 3) */}
+            {miRol !== 2 && (
+                <>
+                <div className="pf-info-block col-span-2">
+                <div className="pf-info-icon"><Briefcase size={18} /></div>
+                <div className="pf-info-text">
+                <span className="pf-info-label">Puesto Operativo</span>
+                <span className="pf-info-value">{datosPersonales?.puesto}</span>
+                </div>
+                </div>
+
+                <div className="pf-info-block col-span-2 bg-[#F3F0FF] p-4 rounded-xl border border-[#1a0060]/5 mt-2">
+                <div className="pf-info-icon"><MapPin size={18} /></div>
+                <div className="pf-info-text">
+                <span className="pf-info-label">Dirección Particular</span>
+                <span className="pf-info-value text-sm">
+                {datosPersonales?.calle_numero ? `${datosPersonales.calle_numero}, ${datosPersonales.colonia}. CP: ${datosPersonales.codigo_postal}` : 'No registrada'}
+                </span>
+                </div>
+                </div>
+                </>
+            )}
             </div>
             </motion.div>
 
         ) : (
 
-            /* ══ EDIT VIEW ══ */
-            <motion.div
-            key="edit"
-            className="pf-form-card"
-            initial={{ opacity:0, x:20 }}
-            animate={{ opacity:1, x:0  }}
-            exit={{ opacity:0, x:-20 }}
-            transition={{ duration:0.3 }}
-            >
+            /* ══ EDIT VIEW (Solo Admins) ══ */
+            <motion.div key="edit" className="pf-form-card" initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:-20 }}>
             <div className="pf-card-header">
             <div className="pf-card-header-icon" style={{ color:'#ffe144', background:'rgba(255,225,68,0.15)', borderColor:'rgba(255,225,68,0.25)' }}>
             <Edit2 size={16} />
             </div>
-            <span className="pf-card-header-title">Editar información</span>
+            <span className="pf-card-header-title">Actualizar datos personales</span>
             </div>
 
-            <form onSubmit={handleGuardar} style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20 }}>
+            <form onSubmit={handleGuardar} className="pf-form space-y-5 p-6 md:p-8">
             {errorMsg && (
-                <div className="pf-error">
+                <div className="pf-error flex items-center gap-2 bg-[#ff5050]/10 border border-[#ff5050]/20 text-[#ff5050] p-3 rounded-lg text-sm font-medium">
                 <AlertTriangle size={16} /> {errorMsg}
                 </div>
             )}
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-            {/* Username */}
+            <div className="space-y-4">
+            <h3 className="font-syne font-black text-[#1a0060]/50 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <User size={14}/> Datos Personales
+            </h3>
+
             <div>
-            <label className="pf-field-label"><User size={14} /> Nombre de usuario</label>
-            <div className="pf-field-wrap">
-            <input
-            type="text"
-            className="pf-input"
-            value={editUsername}
-            onChange={e => setEditUsername(e.target.value)}
-            required
-            disabled={saving}
-            autoComplete="username"
-            />
-            </div>
+            <label className="pf-field-label">Nombre completo</label>
+            <input type="text" className="pf-input" value={form.nombre_completo} onChange={e => setForm({...form, nombre_completo: e.target.value})} required disabled={saving} />
             </div>
 
-            {/* Password */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-            <label className="pf-field-label"><Lock size={14} /> Nueva contraseña</label>
-            <p className="pf-hint">Dejar en blanco para no cambiar</p>
-            <div className="pf-field-wrap">
-            <input
-            type={showPass ? 'text' : 'password'}
-            className="pf-input"
-            placeholder="••••••••"
-            value={editPassword}
-            onChange={e => setEditPassword(e.target.value)}
-            disabled={saving}
-            autoComplete="new-password"
-            />
-            <button
-            type="button"
-            className="pf-pass-toggle"
-            onClick={() => setShowPass(v => !v)}
-            tabIndex={-1}
-            >
-            {showPass ? <IconEyeOff /> : <IconEye />}
-            </button>
+            <label className="pf-field-label">Correo electrónico</label>
+            <input type="email" className="pf-input" value={form.correo} onChange={e => setForm({...form, correo: e.target.value})} required disabled={saving} />
+            </div>
+            <div>
+            <label className="pf-field-label">Teléfono</label>
+            <input type="text" className="pf-input" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})} required disabled={saving} />
             </div>
             </div>
 
-            {/* Rol (admin only) */}
-            {miRol === 1 && (
-                <div style={{ gridColumn:'1 / -1' }}>
-                <label className="pf-field-label"><Shield size={14} /> Rol de acceso</label>
-                <div className="pf-field-wrap">
-                <select
-                className="pf-select"
-                value={editRolId}
-                onChange={e => setEditRolId(Number(e.target.value))}
-                disabled={saving}
-                >
-                <option value={1}>Administrador</option>
-                <option value={2}>Vendedor</option>
-                <option value={3}>Producción</option>
-                </select>
-                <span className="pf-select-icon"><ChevronDown size={16} /></span>
-                </div>
-                </div>
-            )}
+            <div>
+            <label className="pf-field-label">Puesto</label>
+            <input type="text" className="pf-input" value={form.puesto} onChange={e => setForm({...form, puesto: e.target.value})} required disabled={saving} />
+            </div>
             </div>
 
-            <motion.button
-            type="submit"
-            className="pf-save-btn"
-            disabled={saving}
-            whileHover={!saving ? { scale:1.01 } : {}}
-            whileTap={!saving ? { scale:0.97 } : {}}
-            >
-            {saving
-                ? <><span className="pf-spinner"><Save size={16} /></span> Guardando...</>
-                : <><Save size={17} /> Guardar cambios</>
-            }
+            <div className="space-y-4 pt-4 border-t border-dashed border-[#1a0060]/10">
+            <h3 className="font-syne font-black text-[#1a0060]/50 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <MapPin size={14}/> Dirección (Opcional)
+            </h3>
+            <div>
+            <label className="pf-field-label">Calle y número</label>
+            <input type="text" className="pf-input" value={form.calle_numero} onChange={e => setForm({...form, calle_numero: e.target.value})} disabled={saving} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+            <label className="pf-field-label">Colonia</label>
+            <input type="text" className="pf-input" value={form.colonia} onChange={e => setForm({...form, colonia: e.target.value})} disabled={saving} />
+            </div>
+            <div>
+            <label className="pf-field-label">Código Postal</label>
+            <input type="text" className="pf-input" value={form.codigo_postal} onChange={e => setForm({...form, codigo_postal: e.target.value})} disabled={saving} />
+            </div>
+            </div>
+            </div>
+
+            <motion.button type="submit" className="pf-save-btn w-full flex items-center justify-center gap-3 bg-[#cc55ff] text-white font-syne font-black uppercase py-4 rounded-2xl border-[3px] border-[#1a0060] shadow-[6px_6px_0px_#1a0060] transition-all" disabled={saving}>
+            {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</> : <><Save size={18} /> Actualizar datos</>}
             </motion.button>
             </form>
             </motion.div>
         )}
         </AnimatePresence>
-
         </div>
         </>
     );
