@@ -33,4 +33,9 @@ export class ProductosResolver {
     removeProducto(@Args('id_producto', { type: () => Int }) id_producto: number) {
         return this.productosService.remove(id_producto);
     }
+
+    @Query(() => [Producto], { name: 'buscarProductos' })
+    searchProductos(@Args('termino', { type: () => String, nullable: true }) termino?: string) {
+        return this.productosService.searchProductos(termino || '');
+    }
 }

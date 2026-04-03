@@ -18,10 +18,33 @@ export class CortesVendedorService {
         return this.findOne(guardado.id_corte);
     }
 
-    async findAll(): Promise<CorteVendedor[]> {
+    // 👇 Búsqueda inteligente en el Backend
+    async findAll(search: string = ''): Promise<CorteVendedor[]> {
+        const query = this.corteRepository.createQueryBuilder('corte')
+        .leftJoinAndSelect('corte.vendedor', 'vendedor')
+        .leftJoinAndSelect('corte.asignacion', 'asignacion')
+        .leftJoinAndSelect('corte.detalles', 'detalles')
+        .leftJoinAndSelect('detalles.producto', 'producto');
+
+        if (search.trim() !== '') {
+            const isNumber = !isNaN(Number(search));
+            if (isNumber) {
+                query.where('corte.id_corte = :id', { id: Number(search) }); // Busca por Folio
+            } else {
+                query.where('vendedor.nombre_completo LIKE :search', { search: `%${search}%` }); // Busca por Vendedor
+            }
+        }
+
+        return query.orderBy('corte.id_corte', 'DESC').take(50).getMany();
+    }
+
+    // 👇 NUEVO: Búsqueda segura para el panel "Mis Finanzas" del Vendedor
+    async findByVendedor(vendedor_id: number): Promise<CorteVendedor[]> {
         return this.corteRepository.find({
-            // Le agregamos 'asignacion' para que se traiga el folio original
-            relations: ['vendedor', 'asignacion', 'detalles', 'detalles.producto']
+            where: { vendedor_id },
+            relations: ['vendedor', 'asignacion', 'detalles', 'detalles.producto'],
+            take: 30, // Solo sus últimos 30 cortes
+            order: { id_corte: 'DESC' }
         });
     }
 

@@ -22,9 +22,14 @@ export class CategoriasService {
         return this.findOne(guardada.id_categoria);
     }
 
+    // En categorias.service.ts
     async findAll(): Promise<Categoria[]> {
-        // 👇 FILTRO: Solo mostramos las que están activas
-        return this.categoriaRepository.find({ where: { activo: true } });
+        // 👇 FILTRO: Solo activas + LÍMITE DURO de 50 + Ordenadas por las más nuevas
+        return this.categoriaRepository.find({
+            where: { activo: true },
+            take: 50, // Límite de seguridad
+            order: { id_categoria: 'DESC' } // Los últimos agregados aparecen primero
+        });
     }
 
     async findOne(id_categoria: number): Promise<Categoria> {

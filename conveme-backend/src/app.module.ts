@@ -47,11 +47,11 @@ import { ComprobantesModule } from './comprobantes/comprobantes.module';
 
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: 'db.utvt.cloud',
       port: 3306,
-      username: 'root',
-      password: '12345',
-      database: 'conveme_bd',
+      username: 'conveme',
+      password: 'bs$QIq4ngOjY',
+      database: 'db_conveme',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),

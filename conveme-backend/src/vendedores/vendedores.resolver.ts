@@ -37,4 +37,10 @@ export class VendedoresResolver {
     removeVendedor(@Args('id_vendedor', { type: () => Int }) id_vendedor: number) {
         return this.vendedoresService.remove(id_vendedor);
     }
+
+    @Query(() => [Vendedor], { name: 'buscarVendedores' })
+    searchVendedores(@Args('termino', { type: () => String, nullable: true }) termino?: string) {
+        // Le pasamos el término, o un string vacío si no mandaron nada
+        return this.vendedoresService.searchVendedores(termino || '');
+    }
 }

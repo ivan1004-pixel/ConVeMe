@@ -18,6 +18,12 @@ export class ClientesResolver {
     return this.clientesService.findAll();
   }
 
+  // 👇 NUEVO: Exponemos el buscador para React
+  @Query(() => [Cliente], { name: 'buscarClientes' })
+  searchClientes(@Args('termino', { type: () => String, nullable: true }) termino?: string) {
+    return this.clientesService.searchClientes(termino || '');
+  }
+
   @Query(() => Cliente, { name: 'cliente' })
   findOne(@Args('id_cliente', { type: () => Int }) id_cliente: number) {
     return this.clientesService.findOne(id_cliente);

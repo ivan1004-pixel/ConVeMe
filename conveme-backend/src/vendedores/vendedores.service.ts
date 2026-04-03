@@ -79,4 +79,14 @@ export class VendedoresService {
         return vendedor;
     }
 
+    async searchVendedores(termino: string = ''): Promise<Vendedor[]> {
+        const query = this.vendedorRepository.createQueryBuilder('vendedor');
+
+        // Si escribieron algo, filtramos. Si no, nos saltamos el WHERE y trae todos.
+        if (termino.trim() !== '') {
+            query.where('vendedor.nombre_completo LIKE :termino', { termino: `%${termino}%` });
+        }
+
+        return query.orderBy('vendedor.id_vendedor', 'DESC').take(20).getMany();
+    }
 }

@@ -13,9 +13,16 @@ export class CortesVendedorResolver {
         return this.cortesVendedorService.create(createCorteVendedorInput);
     }
 
+    // 👇 Actualizado para recibir la variable de búsqueda
     @Query(() => [CorteVendedor], { name: 'cortesVendedor' })
-    findAll() {
-        return this.cortesVendedorService.findAll();
+    findAll(@Args('search', { type: () => String, nullable: true }) search?: string) {
+        return this.cortesVendedorService.findAll(search || '');
+    }
+
+    // 👇 NUEVO: El endpoint para "Mis Finanzas"
+    @Query(() => [CorteVendedor], { name: 'cortesPorVendedor' })
+    findByVendedor(@Args('vendedor_id', { type: () => Int }) vendedor_id: number) {
+        return this.cortesVendedorService.findByVendedor(vendedor_id);
     }
 
     @Query(() => CorteVendedor, { name: 'corteVendedor' })

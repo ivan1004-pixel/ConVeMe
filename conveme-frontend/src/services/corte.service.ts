@@ -1,9 +1,10 @@
 import { convemeApi } from '../api/convemeApi';
 
-export const getCortes = async () => {
+// 👇 Ahora acepta el buscador
+export const getCortes = async (search: string = '') => {
     const query = `
-    query {
-        cortesVendedor {
+    query GetCortesVendedor($search: String) {
+        cortesVendedor(search: $search) {
             id_corte
             fecha_corte
             dinero_esperado
@@ -31,7 +32,7 @@ export const getCortes = async () => {
         }
     }
     `;
-    const { data } = await convemeApi.post('', { query });
+    const { data } = await convemeApi.post('', { query, variables: { search } });
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.cortesVendedor;
 };
@@ -73,8 +74,39 @@ export const deleteCorte = async (id: number) => {
     return data.data.removeCorteVendedor;
 };
 
-// 👇 ESTA ES LA FUNCIÓN QUE EL VENDEDOR NECESITA PARA "MIS FINANZAS" 👇
+// 👇 AHORA ES UNA CONSULTA DIRECTA Y SEGURA A LA BASE DE DATOS
 export const getCortesPorVendedor = async (vendedor_id: number) => {
-    const todosLosCortes = await getCortes();
-    return todosLosCortes.filter((corte: any) => corte.vendedor?.id_vendedor === vendedor_id);
+    const query = `
+    query GetCortesPorVendedor($vendedor_id: Int!) {
+        cortesPorVendedor(vendedor_id: $vendedor_id) {
+            id_corte
+            fecha_corte
+            dinero_esperado
+            dinero_total_entregado
+            diferencia_corte
+            observaciones
+            vendedor {
+                id_vendedor
+                nombre_completo
+            }
+            asignacion {
+                id_asignacion
+            }
+            detalles {
+                id_det_corte
+                cantidad_vendida
+                cantidad_devuelta
+                merma_reportada
+                producto {
+                    id_producto
+                    nombre
+                    precio_unitario
+                }
+            }
+        }
+    }
+    `;
+    const { data } = await convemeApi.post('', { query, variables: { vendedor_id } });
+    if (data.errors) throw new Error(data.errors[0].message);
+    return data.data.cortesPorVendedor;
 };

@@ -13,9 +13,10 @@ export class AsignacionesVendedorResolver {
         return this.asignacionesVendedorService.create(createAsignacionVendedorInput);
     }
 
+    // 👇 Solo un findAll, limpio y correcto
     @Query(() => [AsignacionVendedor], { name: 'asignacionesVendedor' })
-    findAll() {
-        return this.asignacionesVendedorService.findAll();
+    findAll(@Args('search', { type: () => String, nullable: true }) search?: string) {
+        return this.asignacionesVendedorService.findAll(search || '');
     }
 
     @Query(() => AsignacionVendedor, { name: 'asignacionVendedor' })

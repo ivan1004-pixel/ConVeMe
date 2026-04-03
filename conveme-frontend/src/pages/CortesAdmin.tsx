@@ -1,66 +1,89 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserGreeting from '../components/ui/UserGreeting';
+
+// Componentes y Servicios
+import ModalAsignacion from '../components/inventario/ModalAsignacion';
+import ModalCorte from '../components/inventario/ModalCorte';
 import ActionModal from '../components/ui/ActionModal';
 import type { ActionType } from '../components/ui/ActionModal';
 
-import { getCortes, deleteCorte } from '../services/corte.service';
+import { getCortes, createCorte, deleteCorte } from '../services/corte.service';
 import { getAsignaciones, deleteAsignacion } from '../services/asignacion.service';
 
-import ModalAsignacion from '../components/inventario/ModalAsignacion';
-import ModalCorte from '../components/inventario/ModalCorte';
+import {
+    Plus, ChevronDown, ChevronRight, Wallet,
+    PackageOpen, Search, X, CheckCircle,
+    ArrowUpDown, Loader2, Scale, Trash2, Pencil, AlertCircle, PackagePlus
+} from 'lucide-react';
 
-import { Wallet, Loader2, PackageOpen, PackagePlus, Pencil, Trash2, Scale, Search } from 'lucide-react';
 import '../styles/Catalogos.css';
-import '../styles/Modales.css';
+
+const TABS = [
+    { id: 'cortes',       label: 'Historial de Cortes', icon: <Wallet size={16} /> },
+{ id: 'asignaciones', label: 'Mercancía en Ruta',   icon: <PackageOpen size={16} /> },
+];
 
 export default function CortesAdmin() {
-    const [activeTab, setActiveTab] = useState<'cortes' | 'asignaciones'>('cortes');
+    const [tabActiva, setTabActiva] = useState('cortes');
+
+    // Modales
+    const [isModalAsigOpen, setIsModalAsigOpen] = useState(false);
+    const [isModalCorteOpen, setIsModalCorteOpen] = useState(false);
+
+    // Data (Máximo 50 registros cargados desde el backend en tiempo real)
     const [cortes, setCortes] = useState<any[]>([]);
     const [asignaciones, setAsignaciones] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
-    // Estados para los Modales
-    const [isModalCorteOpen, setIsModalCorteOpen] = useState(false);
-    const [isModalAsigOpen, setIsModalAsigOpen] = useState(false);
-
-    // Estados para saber qué estamos editando
+    // Edición
     const [asigAEditar, setAsigAEditar] = useState<any>(null);
     const [corteAEditar, setCorteAEditar] = useState<any>(null);
 
-    const [actionModal, setActionModal] = useState<{
-        isOpen: boolean; type: ActionType; title: string; subtitle: string;
-        description?: string; itemName?: string; onConfirm?: () => Promise<void>;
-    }>({ isOpen: false, type: 'success', title: '', subtitle: '' });
+    const [actionModal, setActionModal] = useState<{isOpen: boolean; type: ActionType; title: string; subtitle: string; description?: string; itemName?: string; onConfirm?: () => Promise<void>;}>({ isOpen: false, type: 'success', title: '', subtitle: '' });
+
+    // 👇 AQUÍ ESTÁ LA MAGIA: Espera 500ms al teclear y manda buscar al backend
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            cargarDatos(search);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [search, tabActiva]);
+
+    // 👇 Ahora la función recibe el texto y se lo envía a las peticiones
+    const cargarDatos = async (terminoBusqueda = search) => {
+        setLoading(true);
+        try {
+            const [cortesData, asigs] = await Promise.all([
+                getCortes(terminoBusqueda),
+                                                          getAsignaciones(terminoBusqueda)
+            ]);
+            setCortes(cortesData);
+            setAsignaciones(asigs);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const closeAction = () => setActionModal(p => ({ ...p, isOpen: false }));
 
-    useEffect(() => { cargarDatos(); }, []);
-
-    const cargarDatos = async () => {
-        setLoading(true);
-        try {
-            const [cortesData, asigs] = await Promise.all([getCortes(), getAsignaciones()]);
-            setCortes(cortesData.sort((a: any, b: any) => b.id_corte - a.id_corte));
-            setAsignaciones(asigs.sort((a: any, b: any) => b.id_asignacion - a.id_asignacion));
-        } catch (error) { console.error(error); }
-        finally { setLoading(false); }
-    };
-
-    // --- FUNCIONES DE ELIMINAR ---
+    // --- ACCIONES ---
     const handleDeleteCorte = (corte: any) => {
         setActionModal({
             isOpen: true, type: 'confirm-delete', title: 'Eliminar Corte',
             subtitle: `¿Eliminar el corte #C-${corte.id_corte}?`,
-            description: 'Se eliminará el registro. (Esto NO reabre automáticamente la asignación).',
-                       itemName: `#C-${corte.id_corte} — ${corte.vendedor?.nombre_completo}`,
-                       onConfirm: async () => {
-                           await deleteCorte(corte.id_corte);
-                           await cargarDatos();
-                           setActionModal({ isOpen: true, type: 'success-delete', title: 'Corte eliminado', subtitle: 'El registro fue eliminado.' });
-                           setTimeout(closeAction, 2200);
-                       },
+            description: 'Se eliminará el registro.',
+            itemName: `#C-${corte.id_corte} — ${corte.vendedor?.nombre_completo}`,
+            onConfirm: async () => {
+                await deleteCorte(corte.id_corte);
+                await cargarDatos();
+                setActionModal({ isOpen: true, type: 'success-delete', title: 'Corte eliminado', subtitle: 'El registro fue eliminado.' });
+                setTimeout(closeAction, 2200);
+            },
         });
     };
 
@@ -68,7 +91,7 @@ export default function CortesAdmin() {
         setActionModal({
             isOpen: true, type: 'confirm-delete', title: 'Eliminar Asignación',
             subtitle: `¿Eliminar el folio #A-${asig.id_asignacion}?`,
-            description: 'Se eliminará la asignación y sus detalles de forma permanente.',
+            description: 'Se eliminará la asignación y sus detalles.',
             itemName: `#A-${asig.id_asignacion} — ${asig.vendedor?.nombre_completo}`,
             onConfirm: async () => {
                 await deleteAsignacion(asig.id_asignacion);
@@ -79,30 +102,10 @@ export default function CortesAdmin() {
         });
     };
 
-    // --- FUNCIONES PARA ABRIR MODALES ---
-    const handleEditarAsignacion = (asig: any) => {
-        setAsigAEditar(asig);
-        setIsModalAsigOpen(true);
-    };
-
-    const abrirNuevaAsignacion = () => {
-        setAsigAEditar(null);
-        setIsModalAsigOpen(true);
-    };
-
-    const handleEditarCorte = (corte: any) => {
-        setCorteAEditar(corte);
-        setIsModalCorteOpen(true);
-    };
-
-    const abrirNuevoCorte = () => {
-        setCorteAEditar(null);
-        setIsModalCorteOpen(true);
-    };
-
-    // --- FILTRADO POR BUSCADOR ---
-    const cortesFiltrados = cortes.filter(c => c.vendedor?.nombre_completo.toLowerCase().includes(search.toLowerCase()));
-    const asignacionesFiltradas = asignaciones.filter(a => a.vendedor?.nombre_completo.toLowerCase().includes(search.toLowerCase()));
+    const handleEditarAsignacion = (asig: any) => { setAsigAEditar(asig); setIsModalAsigOpen(true); };
+    const abrirNuevaAsignacion = () => { setAsigAEditar(null); setIsModalAsigOpen(true); };
+    const handleEditarCorte = (corte: any) => { setCorteAEditar(corte); setIsModalCorteOpen(true); };
+    const abrirNuevoCorte = () => { setCorteAEditar(null); setIsModalCorteOpen(true); };
 
     return (
         <>
@@ -134,40 +137,41 @@ export default function CortesAdmin() {
 
             {/* PESTAÑAS */}
             <div className="flex gap-6 border-b-2 border-[#1a0060]/10 mb-6 mt-4 px-2">
-            <button className={`pb-3 font-black text-sm transition-all flex items-center gap-2 ${activeTab === 'cortes' ? 'border-b-4 border-[#cc55ff] text-[#cc55ff]' : 'text-gray-400 hover:text-[#1a0060]'}`} onClick={() => setActiveTab('cortes')}>
+            <button className={`pb-3 font-black text-sm transition-all flex items-center gap-2 ${tabActiva === 'cortes' ? 'border-b-4 border-[#cc55ff] text-[#cc55ff]' : 'text-gray-400 hover:text-[#1a0060]'}`} onClick={() => setTabActiva('cortes')}>
             <Wallet size={18} /> Historial de Cortes
             </button>
-            <button className={`pb-3 font-black text-sm transition-all flex items-center gap-2 ${activeTab === 'asignaciones' ? 'border-b-4 border-[#cc55ff] text-[#cc55ff]' : 'text-gray-400 hover:text-[#1a0060]'}`} onClick={() => setActiveTab('asignaciones')}>
+            <button className={`pb-3 font-black text-sm transition-all flex items-center gap-2 ${tabActiva === 'asignaciones' ? 'border-b-4 border-[#cc55ff] text-[#cc55ff]' : 'text-gray-400 hover:text-[#1a0060]'}`} onClick={() => setTabActiva('asignaciones')}>
             <PackageOpen size={18} /> Mercancía Asignada
             </button>
             </div>
 
             {/* TABLAS */}
-            <motion.div className="cat-card" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div key={tabActiva} className="cat-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="cat-card-header">
             <div className="cat-card-header-left">
             <span className="cat-card-title uppercase font-black text-[#1a0060] tracking-widest text-sm">
-            {activeTab === 'cortes' ? 'Historial de Cortes' : 'Mercancía en Ruta'}
+            {tabActiva === 'cortes' ? 'Historial de Cortes' : 'Mercancía en Ruta'}
             </span>
             <span className="cat-count-badge font-bold">
-            {activeTab === 'cortes' ? cortesFiltrados.length : asignacionesFiltradas.length} registros
+            {tabActiva === 'cortes' ? cortes.length : asignaciones.length} resultados
             </span>
             </div>
             <div className="cat-search-wrap">
             <Search size={14} className="text-gray-400" />
-            <input className="cat-search-input font-bold text-[#1a0060] placeholder-gray-400" placeholder="Buscar vendedor..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="cat-search-input font-bold text-[#1a0060] placeholder-gray-400" placeholder="Buscar por vendedor o folio..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             </div>
 
             <div className="cat-table-scroll p-4 pt-0">
             {loading ? <div className="py-10 text-center"><Loader2 className="animate-spin mx-auto text-[#1a0060]" size={32} /></div> : (
-                activeTab === 'cortes' ? (
+                tabActiva === 'cortes' ? (
                     <table className="cat-table">
                     <thead>
                     <tr><th className="uppercase tracking-widest text-xs">Folio</th><th className="uppercase tracking-widest text-xs">Vendedor</th><th className="uppercase tracking-widest text-xs">Asignación</th><th className="uppercase tracking-widest text-xs">Esperado (Neto)</th><th className="uppercase tracking-widest text-xs">Entregado</th><th className="uppercase tracking-widest text-xs">Diferencia</th><th className="uppercase tracking-widest text-xs">Fecha</th><th className="uppercase tracking-widest text-xs text-center">Acciones</th></tr>
                     </thead>
                     <tbody>
-                    {cortesFiltrados.map(c => (
+                    {/* 👇 AQUÍ USAMOS 'cortes' DIRECTAMENTE, EL BACKEND HIZO EL TRABAJO */}
+                    {cortes.map(c => (
                         <tr key={c.id_corte}>
                         <td className="font-black text-[#1a0060]">#C-{c.id_corte}</td>
                         <td className="font-bold text-[#cc55ff]">{c.vendedor?.nombre_completo}</td>
@@ -184,7 +188,7 @@ export default function CortesAdmin() {
                         </td>
                         </tr>
                     ))}
-                    {cortesFiltrados.length === 0 && <tr><td colSpan={8} className="text-center py-6 text-gray-400 font-bold">No se encontraron cortes.</td></tr>}
+                    {cortes.length === 0 && <tr><td colSpan={8} className="text-center py-6 text-gray-400 font-bold">No se encontraron cortes.</td></tr>}
                     </tbody>
                     </table>
                 ) : (
@@ -193,7 +197,8 @@ export default function CortesAdmin() {
                     <tr><th className="uppercase tracking-widest text-xs">Folio</th><th className="uppercase tracking-widest text-xs">Vendedor</th><th className="uppercase tracking-widest text-xs">Fecha de Entrega</th><th className="uppercase tracking-widest text-xs">Total Piezas</th><th className="uppercase tracking-widest text-xs">Estado</th><th className="uppercase tracking-widest text-xs text-center">Acciones</th></tr>
                     </thead>
                     <tbody>
-                    {asignacionesFiltradas.map(asig => {
+                    {/* 👇 AQUÍ USAMOS 'asignaciones' DIRECTAMENTE */}
+                    {asignaciones.map(asig => {
                         const totalPiezas = asig.detalles?.reduce((s: number, d: any) => s + d.cantidad_asignada, 0) || 0;
                         return (
                             <tr key={asig.id_asignacion}>
@@ -211,7 +216,7 @@ export default function CortesAdmin() {
                             </tr>
                         );
                     })}
-                    {asignacionesFiltradas.length === 0 && <tr><td colSpan={6} className="text-center py-6 text-gray-400 font-bold">No se encontraron asignaciones.</td></tr>}
+                    {asignaciones.length === 0 && <tr><td colSpan={6} className="text-center py-6 text-gray-400 font-bold">No se encontraron asignaciones.</td></tr>}
                     </tbody>
                     </table>
                 )

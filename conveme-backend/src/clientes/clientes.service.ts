@@ -15,12 +15,30 @@ export class ClientesService {
   async create(createClienteInput: CreateClienteInput): Promise<Cliente> {
     const nuevoCliente = this.clienteRepository.create(createClienteInput);
     const guardado = await this.clienteRepository.save(nuevoCliente);
-    // Aplicamos la magia de retornar con relaciones
     return this.findOne(guardado.id_cliente);
   }
 
   async findAll(): Promise<Cliente[]> {
-    return this.clienteRepository.find({ relations: ['usuario'] });
+    // 👇 LÍMITE DURO: Solo traemos los últimos 50 clientes registrados
+    return this.clienteRepository.find({
+      relations: ['usuario'],
+      take: 50,
+      order: { id_cliente: 'DESC' }
+    });
+  }
+
+  // 👇 NUEVO: Buscador predictivo para modales (Solo trae 20)
+  async searchClientes(termino: string = ''): Promise<Cliente[]> {
+    const query = this.clienteRepository.createQueryBuilder('cliente')
+    .leftJoinAndSelect('cliente.usuario', 'usuario'); // Por si necesitas datos del usuario
+
+    // Filtramos por nombre o correo
+    if (termino.trim() !== '') {
+      query.where('cliente.nombre_completo LIKE :termino', { termino: `%${termino}%` })
+      .orWhere('cliente.email LIKE :termino', { termino: `%${termino}%` });
+    }
+
+    return query.orderBy('cliente.id_cliente', 'DESC').take(20).getMany();
   }
 
   async findOne(id_cliente: number): Promise<Cliente> {

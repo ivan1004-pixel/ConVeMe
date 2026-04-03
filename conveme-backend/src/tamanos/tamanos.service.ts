@@ -23,10 +23,11 @@ export class TamanosService {
     }
 
     async findAll(): Promise<Tamano[]> {
-        // 👇 FILTRO: Solo mostramos los que están activos
-        return this.tamanoRepository.find({ where: { activo: true } });
+        return this.tamanoRepository.find({
+            take: 50, // 👈 EL LÍMITE SALVAVIDAS
+            order: { id_tamano: 'DESC' }
+        });
     }
-
     async findOne(id_tamano: number): Promise<Tamano> {
         const tamano = await this.tamanoRepository.findOne({ where: { id_tamano } });
         if (!tamano) throw new NotFoundException(`Tamaño #${id_tamano} no encontrado`);

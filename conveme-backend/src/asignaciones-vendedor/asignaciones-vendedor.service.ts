@@ -18,10 +18,23 @@ export class AsignacionesVendedorService {
         return this.findOne(guardada.id_asignacion);
     }
 
-    async findAll(): Promise<AsignacionVendedor[]> {
-        return this.asignacionRepository.find({
-            relations: ['vendedor', 'detalles', 'detalles.producto']
-        });
+    async findAll(search: string = ''): Promise<AsignacionVendedor[]> {
+        const query = this.asignacionRepository.createQueryBuilder('asignacion')
+        .leftJoinAndSelect('asignacion.vendedor', 'vendedor')
+        .leftJoinAndSelect('asignacion.detalles', 'detalles')
+        .leftJoinAndSelect('detalles.producto', 'producto');
+
+        // Si el usuario escribió algo en la barra de búsqueda
+        if (search.trim() !== '') {
+            const isNumber = !isNaN(Number(search));
+            if (isNumber) {
+                query.where('asignacion.id_asignacion = :id', { id: Number(search) }); // Busca por Folio
+            } else {
+                query.where('vendedor.nombre_completo LIKE :search', { search: `%${search}%` }); // Busca por Vendedor
+            }
+        }
+
+        return query.orderBy('asignacion.id_asignacion', 'DESC').take(50).getMany();
     }
 
     async findOne(id_asignacion: number): Promise<AsignacionVendedor> {

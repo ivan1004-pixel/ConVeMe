@@ -18,22 +18,24 @@ export class ComprobantesService {
     }
 
     async findAll(): Promise<Comprobante[]> {
+        // 👇 LÍMITE DURO: Los 50 comprobantes más recientes en todo el ERP (Vista Admin)
         return this.comprobanteRepository.find({
             relations: ['vendedor', 'admin'],
-            order: { fecha_corte: 'DESC' }
+            order: { fecha_corte: 'DESC' },
+            take: 50
         });
     }
 
-    // 👇 Esta es la función que NestJS extrañaba
     async findByVendedor(vendedor_id: number): Promise<Comprobante[]> {
+        // 👇 LÍMITE DURO: Los últimos 30 comprobantes de un VENDEDOR ESPECÍFICO
         return this.comprobanteRepository.find({
             where: { vendedor_id },
             relations: ['vendedor', 'admin'],
-            order: { fecha_corte: 'DESC' }
+            order: { fecha_corte: 'DESC' },
+            take: 30
         });
     }
 
-    // 👇 Y esta también
     async findOne(id_comprobante: number): Promise<Comprobante> {
         const comprobante = await this.comprobanteRepository.findOne({
             where: { id_comprobante },
@@ -47,6 +49,7 @@ export class ComprobantesService {
         const comprobante = await this.findOne(id_comprobante);
         Object.assign(comprobante, updateInput);
 
+        // Recalcular saldo pendiente si modifican montos
         if (updateInput.total_vendido !== undefined || updateInput.comision_vendedor !== undefined || updateInput.monto_entregado !== undefined) {
             const debe = Number(comprobante.total_vendido) - Number(comprobante.comision_vendedor);
             comprobante.saldo_pendiente = debe - Number(comprobante.monto_entregado);

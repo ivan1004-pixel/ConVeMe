@@ -31,4 +31,15 @@ export class AsignacionVendedor {
     @Field(() => [DetAsignacion], { nullable: true })
     @OneToMany(() => DetAsignacion, detalle => detalle.asignacion, { cascade: true, orphanedRowAction: 'delete' }) // <-- AÑADIDO: orphanedRowAction
     detalles: DetAsignacion[];
+
+
+}
+
+@ObjectType()
+export class PaginatedAsignaciones {
+    @Field(() => [AsignacionVendedor])
+    data: AsignacionVendedor[];
+
+    @Field(() => Int)
+    total: number;
 }

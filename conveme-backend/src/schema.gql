@@ -425,7 +425,9 @@ type Query {
   vendedores: [Vendedor!]!
   vendedorByUsuario(usuario_id: Int!): Vendedor
   vendedor(id_vendedor: Int!): Vendedor!
+  buscarVendedores(termino: String): [Vendedor!]!
   clientes: [Cliente!]!
+  buscarClientes(termino: String): [Cliente!]!
   cliente(id_cliente: Int!): Cliente!
   categorias: [Categoria!]!
   categoria(id_categoria: Int!): Categoria!
@@ -433,6 +435,7 @@ type Query {
   tamano(id_tamano: Int!): Tamano!
   productos: [Producto!]!
   producto(id_producto: Int!): Producto!
+  buscarProductos(termino: String): [Producto!]!
   insumos: [Insumo!]!
   insumo(id_insumo: Int!): Insumo!
   comprasInsumos: [CompraInsumo!]!
@@ -443,9 +446,10 @@ type Query {
   inventarioProducto(id_inventario: Int!): InventarioProducto!
   movimientosInventario: [MovimientoInventario!]!
   movimientoInventario(id_movimiento: Int!): MovimientoInventario!
-  asignacionesVendedor: [AsignacionVendedor!]!
+  asignacionesVendedor(search: String): [AsignacionVendedor!]!
   asignacionVendedor(id_asignacion: Int!): AsignacionVendedor!
-  cortesVendedor: [CorteVendedor!]!
+  cortesVendedor(search: String): [CorteVendedor!]!
+  cortesPorVendedor(vendedor_id: Int!): [CorteVendedor!]!
   corteVendedor(id_corte: Int!): CorteVendedor!
   cuentasBancarias: [CuentaBancaria!]!
   cuentaBancaria(id_cuenta: Int!): CuentaBancaria!

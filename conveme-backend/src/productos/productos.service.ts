@@ -22,11 +22,11 @@ export class ProductosService {
 
         return this.findOne(guardado.id_producto);
     }
-
     async findAll(): Promise<Producto[]> {
         return this.productoRepository.find({
-            where: { activo: true }, // 👇 FILTRO: Solo mostramos los activos
-            relations: ['categoria', 'tamano']
+            relations: ['categoria', 'tamano'],
+            take: 50, // 👈 EL LÍMITE SALVAVIDAS
+            order: { id_producto: 'DESC' }
         });
     }
 
@@ -62,5 +62,17 @@ export class ProductosService {
         producto.activo = false;
         await this.productoRepository.save(producto);
         return producto;
+    }
+
+    // En productos.service.ts
+    async searchProductos(termino: string = ''): Promise<Producto[]> {
+        const query = this.productoRepository.createQueryBuilder('producto')
+        .where('producto.activo = :activo', { activo: true }); // Solo activos
+
+        if (termino.trim() !== '') {
+            query.andWhere('(producto.nombre LIKE :termino OR producto.sku LIKE :termino)', { termino: `%${termino}%` });
+        }
+
+        return query.orderBy('producto.id_producto', 'DESC').take(20).getMany();
     }
 }

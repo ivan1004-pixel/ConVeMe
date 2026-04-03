@@ -1,9 +1,10 @@
 import { convemeApi } from '../api/convemeApi';
 
-export const getAsignaciones = async () => {
+// 👇 1. Agregamos el parámetro 'search' y se lo pasamos al Query
+export const getAsignaciones = async (search: string = '') => {
     const query = `
-    query {
-        asignacionesVendedor {
+    query GetAsignaciones($search: String) {
+        asignacionesVendedor(search: $search) {
             id_asignacion
             fecha_asignacion
             estado
@@ -12,7 +13,7 @@ export const getAsignaciones = async () => {
                 nombre_completo
             }
             detalles {
-                id_det_asignacion  # <--- CORREGIDO (Antes decía id_det_corte)
+                id_det_asignacion
                 cantidad_asignada
                 producto {
                     id_producto
@@ -24,7 +25,7 @@ export const getAsignaciones = async () => {
         }
     }
     `;
-    const { data } = await convemeApi.post('', { query });
+    const { data } = await convemeApi.post('', { query, variables: { search } });
     if (data.errors) throw new Error(data.errors[0].message);
     return data.data.asignacionesVendedor;
 };

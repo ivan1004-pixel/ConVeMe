@@ -32,3 +32,13 @@ export class DetAsignacion {
     @Column()
     cantidad_asignada: number;
 }
+
+
+@ObjectType()
+export class PaginatedAsignaciones {
+    @Field(() => [AsignacionVendedor])
+    data: AsignacionVendedor[];
+
+    @Field(() => Int)
+    total: number;
+}
