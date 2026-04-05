@@ -15,7 +15,7 @@ export const useAuth = () => {
             localStorage.setItem('token', response.token);
             localStorage.setItem('rol_id', response.usuario.rol_id.toString());
             localStorage.setItem('id_usuario', response.usuario.id_usuario.toString());
-            localStorage.setItem('username', response.usuario.username);
+            localStorage.setItem('username', (response.usuario as any).username);
             setExito(true);
             return true;
         } catch (err: any) {

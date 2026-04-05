@@ -88,7 +88,7 @@ export default function Profile() {
         }
     };
 
-    const rolMap: Record<number, { label: string; color: string; bg: string; icon: JSX.Element }> = {
+    const rolMap: Record<number, { label: string; color: string; bg: string; icon: any }> = {
         1: { label: 'Administrador', color: '#1a0060', bg: '#ffe144', icon: <Shield size={14} /> },
         2: { label: 'Vendedor',      color: '#fff',     bg: '#cc55ff', icon: <Star size={14} /> },
         3: { label: 'Producción',    color: '#1a0060', bg: '#06d6a0', icon: <Truck size={14} /> },

@@ -20,6 +20,6 @@ export const loginService = async (username: string, password_raw: string) => {
         variables: { username, password_raw },
     });
 
-    if (data.errors) throw new Error(data.errors[0].message);
+    if ((data as any).errors) throw new Error((data as any).errors[0].message);
     return data.data.login;
 };

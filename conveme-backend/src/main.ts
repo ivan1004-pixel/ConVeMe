@@ -1,11 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { json, urlencoded } from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-    app.enableCors();
+  app.enableCors({
+    origin: (origin, callback) => callback(null, origin),
+      credentials: true,
+  });
 
-  await app.listen(process.env.PORT ?? 3000);
+
+  app.use(json({ limit: '100mb' }));
+  app.use(urlencoded({ limit: '100mb', extended: true }));
+
+  await app.listen(3000);
 }
+
 bootstrap();

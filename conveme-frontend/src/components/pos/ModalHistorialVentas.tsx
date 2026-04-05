@@ -20,7 +20,7 @@ interface ModalHistorialProps {
 type DeleteStep = 'idle' | 'confirming' | 'deleting' | 'done';
 
 /* ── payment method label + style ── */
-const METODO_STYLES: Record<string, { bg: string; color: string; icon: JSX.Element; label: string }> = {
+const METODO_STYLES: Record<string, { bg: string; color: string; icon: any; label: string }> = {
     efectivo:    { bg: 'rgba(6,214,160,0.12)',  color: '#05b589', icon: <Banknote   size={11} />, label: 'Efectivo'    },
     tarjeta:     { bg: 'rgba(204,85,255,0.12)', color: '#9b30cc', icon: <CreditCard size={11} />, label: 'Tarjeta'     },
     transferencia:{ bg: 'rgba(3,1,255,0.1)',    color: '#0301ff', icon: <TrendingUp size={11} />, label: 'Transferencia'},

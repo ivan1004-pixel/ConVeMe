@@ -169,7 +169,7 @@ export default function ModalPromocion({ isOpen, onClose, onSave, onDelete, prom
 
                 <div>
                 <FieldLabel icon={<Percent size={13} />}>Valor del Descuento</FieldLabel>
-                <FieldInput type="number" step="0.01" min="0" disabled={loading} value={valorDescuento} onChange={(e: any) => setValorDescuento(e.target.value)} placeholder={tipoPromocion === 'Porcentaje' ? 'Ej. 15' : tipoPromocion === 'Monto Fijo' ? 'Ej. 50.00' : 'No aplica'} disabled={tipoPromocion === 'NxM'} />
+                <FieldInput type="number" step="0.01" min="0" value={valorDescuento} onChange={(e: any) => setValorDescuento(e.target.value)} placeholder={tipoPromocion === 'Porcentaje' ? 'Ej. 15' : tipoPromocion === 'Monto Fijo' ? 'Ej. 50.00' : 'No aplica'} disabled={loading || tipoPromocion === 'NxM'} />
                 </div>
 
                 <div>

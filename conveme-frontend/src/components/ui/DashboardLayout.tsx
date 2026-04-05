@@ -25,7 +25,7 @@ export default function DashboardLayout() {
         navigate('/login');
     };
 
-    const rolInfo: Record<number, { label: string; color: string; icon: JSX.Element }> = {
+    const rolInfo: Record<number, { label: string; color: string; icon: any }> = {
         1: { label: 'Administrador',  color: '#ffe144', icon: <Shield  size={13} /> },
         2: { label: 'Vendedor',       color: '#cc55ff', icon: <Star    size={13} /> },
         3: { label: 'Producción',     color: '#06d6a0', icon: <Truck   size={13} /> },

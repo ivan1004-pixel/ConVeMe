@@ -350,7 +350,7 @@ export default function ModalCorte({ isOpen, onClose, onSuccess, corteAEditar }:
             </div>
             </motion.div>
 
-            <ActionModal isOpen={actionModal.isOpen} type={actionModal.type} title={actionModal.title} subtitle={actionModal.subtitle} description={actionModal.description} itemName={actionModal.itemName} onClose={() => setActionModal(p => ({...p, isOpen: false}))} onConfirm={actionModal.onConfirm} />
+            <ActionModal isOpen={actionModal.isOpen} type={actionModal.type} title={actionModal.title} subtitle={actionModal.subtitle} description={actionModal.description} itemName={(actionModal as any).itemName} onClose={() => setActionModal(p => ({...p, isOpen: false}))} onConfirm={actionModal.onConfirm} />
 
             <ModalAutorizacion
             isOpen={authModalOpen}
